@@ -1,19 +1,22 @@
-"""medreason-bench CLI — Phase 3 entrypoint.
+"""medreason-bench CLI.
 
-Usage:
-    python -m medreason_bench data build [--lcd <path>] [--target N]
-                                          [--version v0.0] [--seed 42]
-    python -m medreason_bench splits verify [--version v0.0]
+Subcommands:
+    data build       — parse an LCD and build a stratified manifest
+    splits verify    — re-hash a manifest and confirm LeakGuard compat
+    train            — populate the memory store from a training split
+    eval             — run an AgentRunner (optionally memory-wrapped)
+                       against a split and emit a LeaderboardEntry
 
-The full CLI surface (planned for later phases) is listed in the top-level
-rework plan. Phase 3 ships only the two subcommands needed to satisfy the
-"done when" criterion: producing a real stratified manifest on disk and
-verifying it with the LeakGuard-compatible fingerprints file.
+The train + eval subcommands share a persistent SQLite store per
+manifest version: medreason_bench/data/stores/<version>.db. Running
+`train` overwrites it; running `eval --memory` reads from it.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
+import sqlite3
 import sys
 from collections import Counter
 from pathlib import Path
@@ -31,12 +34,34 @@ from .splits import (
 )
 
 
-# Default fixture LCD — used when --lcd is not provided. Phase 3 only.
+# Default fixture LCD — used when --lcd is not provided.
 _DEFAULT_LCD = Path(__file__).parent / "data" / "fixtures" / "sample_lcd.xml"
 # Default splits root.
 _SPLITS_ROOT = Path(__file__).parent / "data" / "splits"
 # Leaderboard output root.
 _LEADERBOARD_ROOT = Path(__file__).parent / "leaderboard" / "entries"
+# Persistent memory store root. Each manifest version gets its own sqlite file.
+_STORES_ROOT = Path(__file__).parent / "data" / "stores"
+# Training report output root.
+_REPORTS_ROOT = Path(__file__).parent / "data" / "training_reports"
+
+
+def _store_path(version: str) -> Path:
+    return _STORES_ROOT / f"{version}.db"
+
+
+def _build_claude_runner(model_alias: str):
+    """Build a ClaudeRunner with a CLI-alias-resolved model."""
+    from medreason.runners import ClaudeRunner, resolve_claude_model
+    pinned = resolve_claude_model(model_alias)
+    suffix = ""
+    return ClaudeRunner(model=pinned, runner_id_suffix=suffix)
+
+
+def _build_claude_llm_client(model_alias: str):
+    from medreason.llm import ClaudeLLMClient
+    from medreason.runners import resolve_claude_model
+    return ClaudeLLMClient(model=resolve_claude_model(model_alias))
 
 
 def _cmd_data_build(args: argparse.Namespace) -> int:
@@ -107,31 +132,173 @@ def _cmd_splits_verify(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_train(args: argparse.Namespace) -> int:
+    """Populate the memory store from a training split.
+
+    Walks the train split with the configured base runner, runs critic
+    verification → rule proposer → generalization gate on each correct
+    case, and persists promoted rules to medreason_bench/data/stores/<version>.db.
+    """
+    from medreason.retrieval.embedder import FakeEmbedder
+    from medreason.store import RuleStore, TraceStore
+
+    from .train import TrainingConfig, run_training
+
+    lcd_path = Path(args.lcd) if args.lcd else _DEFAULT_LCD
+    if not lcd_path.exists():
+        print(f"error: LCD file not found: {lcd_path}", file=sys.stderr)
+        return 2
+
+    # Load the training split
+    split_dir = _SPLITS_ROOT / args.version
+    if not split_dir.exists():
+        print(f"error: no splits directory at {split_dir}", file=sys.stderr)
+        return 2
+    train_cases = load_split(split_dir, args.split)
+    if args.max_cases:
+        train_cases = train_cases[: args.max_cases]
+
+    # Build runner + LLM clients (same model for all three slots in the
+    # cheap run — cross-vendor critic is Phase 7)
+    runner = _build_claude_runner(args.model)
+    critic_llm = _build_claude_llm_client(args.critic_model or args.model)
+    proposer_llm = _build_claude_llm_client(args.proposer_model or args.model)
+
+    # Fresh store (overwrite previous training pass)
+    _STORES_ROOT.mkdir(parents=True, exist_ok=True)
+    db_path = _store_path(args.version)
+    if db_path.exists() and not args.append:
+        db_path.unlink()
+    conn = sqlite3.connect(str(db_path))
+    rule_store = RuleStore(conn)
+    trace_store = TraceStore(conn)
+
+    policy = parse_lcd_xml(lcd_path)
+    print(
+        f"[train] policy {policy.document_id}: {policy.title}  "
+        f"({len(policy.cpt_codes)} CPTs, {len(policy.indications)} criteria)"
+    )
+    print(
+        f"[train] runner={runner.runner_id}  critic={critic_llm.model_version}  "
+        f"proposer={proposer_llm.model_version}"
+    )
+    print(
+        f"[train] {len(train_cases)} training case(s), gate_k={args.gate_k}, "
+        f"store={db_path}"
+    )
+
+    config = TrainingConfig(
+        runner=runner,
+        critic_llm=critic_llm,
+        proposer_llm=proposer_llm,
+        store=rule_store,
+        trace_store=trace_store,
+        policy=policy,
+        train_cases=train_cases,
+        version=args.version,
+        split=args.split,
+        gate_k=args.gate_k,
+        gate_seed=args.seed,
+        embedder=FakeEmbedder(),
+        progress_hook=lambda msg: print(msg),
+        seed=args.seed,
+    )
+
+    report = run_training(config)
+    conn.commit()
+    conn.close()
+
+    print()
+    print("=== training report ===")
+    print(f"  cases seen              : {report.n_cases_seen}")
+    print(f"  agent correct           : {report.n_agent_correct}")
+    print(f"  critic agreed           : {report.n_critic_agreed}")
+    print(f"  traces stored           : {report.n_traces_stored}")
+    print(f"  rules proposed          : {report.n_rules_proposed}")
+    print(f"  rules rejected (proposer): {report.n_rules_rejected}")
+    print(f"  rules gated             : {report.n_rules_gated}")
+    print(f"  rules PROMOTED (ACTIVE) : {report.n_rules_promoted}")
+    print(f"  rules deprecated        : {report.n_rules_deprecated}")
+    print(f"  rules deferred          : {report.n_rules_deferred}")
+    print()
+    print(f"  cost (agent/critic/proposer/gate): "
+          f"${report.cost_agent:.4f} / ${report.cost_critic:.4f} / "
+          f"${report.cost_proposer:.4f} / ${report.cost_gate:.4f}")
+    print(f"  TOTAL COST              : ${report.cost_total:.4f}")
+    print(f"  elapsed                 : {report.elapsed_seconds:.1f}s")
+
+    # Persist the training report JSON
+    _REPORTS_ROOT.mkdir(parents=True, exist_ok=True)
+    report_path = _REPORTS_ROOT / f"{args.version}_{args.model}.json"
+    report_path.write_text(
+        json.dumps(report.to_dict(), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(f"[train] report saved to {report_path}")
+    print(f"[train] store saved to {db_path}")
+    return 0
+
+
 def _cmd_eval(args: argparse.Namespace) -> int:
-    # Runner selection. Only Claude is wired in Phase 4 (OpenAI/Gemini
-    # are skeletons that raise NotImplementedError from .run()).
+    from medreason.retrieval.embedder import FakeEmbedder
+    from medreason.runners import MemoryRunner
+    from medreason.store import RuleStore
+
+    # Build the base runner. Claude is the only fully-wired option;
+    # OpenAI/Gemini are Phase 7 skeletons.
     if args.runner == "claude":
-        from medreason.runners import ClaudeRunner
-        runner = ClaudeRunner()
+        base_runner = _build_claude_runner(args.model)
     elif args.runner in ("gpt4", "openai"):
         from medreason.runners import OpenAIRunner
-        runner = OpenAIRunner()
+        base_runner = OpenAIRunner()
     elif args.runner == "gemini":
         from medreason.runners import GeminiRunner
-        runner = GeminiRunner()
+        base_runner = GeminiRunner()
     else:
         print(f"error: unknown runner {args.runner!r}", file=sys.stderr)
         return 2
 
-    if args.split == "test" and args.memory is False:
+    # Memory wrapping (if --memory)
+    runner_for_harness = base_runner
+    store_conn = None
+    memory_note = ""
+    if args.memory:
+        db_path = _store_path(args.version)
+        if not db_path.exists():
+            print(
+                f"error: memory store not found at {db_path}. "
+                f"Run `medreason-bench train --version {args.version}` first.",
+                file=sys.stderr,
+            )
+            return 2
+        store_conn = sqlite3.connect(str(db_path))
+        rule_store = RuleStore(store_conn)
+
+        # Reranker LLM: off by default for the cheap run, wired
+        # only if --rerank is explicitly passed.
+        reranker_llm = None
+        if args.rerank:
+            reranker_llm = _build_claude_llm_client(args.model)
+
+        runner_for_harness = MemoryRunner(
+            base_runner=base_runner,
+            store=rule_store,
+            embedder=FakeEmbedder(),
+            reranker_llm=reranker_llm,
+            tier3_top_k=args.top_k,
+        )
+        memory_note = f" [memory from {db_path.name}]"
+
+    if args.split == "test" and not args.memory:
         print(
-            "warning: running zero-shot on the TEST split before the memory "
-            "pipeline is wired is a smell. Prefer --split dev until Phase 5.",
+            "warning: running zero-shot on the TEST split is allowed but "
+            "note that test-phase tripwires still enforce prompts-lock "
+            "verification.",
             file=sys.stderr,
         )
 
     config = EvalConfig(
-        runner=runner,
+        runner=runner_for_harness,
         splits_root=_SPLITS_ROOT,
         version=args.version,
         split=args.split,
@@ -141,9 +308,10 @@ def _cmd_eval(args: argparse.Namespace) -> int:
     )
 
     print(
-        f"[eval] runner={runner.runner_id}  version={args.version}  "
+        f"[eval] runner={runner_for_harness.runner_id}  version={args.version}  "
         f"split={args.split}  seeds={config.seeds}"
         + ("  (quick)" if args.quick else "")
+        + memory_note
     )
     run = run_eval(config)
 
@@ -153,6 +321,9 @@ def _cmd_eval(args: argparse.Namespace) -> int:
         submitter=args.submitter,
         code_revision=args.revision,
     )
+
+    if store_conn is not None:
+        store_conn.close()
 
     print()
     print(f"  n_cases              : {entry.n_cases}")
@@ -169,6 +340,44 @@ def _cmd_eval(args: argparse.Namespace) -> int:
 
     out_path = save_entry(entry, _LEADERBOARD_ROOT)
     print(f"[eval] leaderboard entry saved to {out_path}")
+
+    # Also save the flat per-case results JSON so the dashboard can
+    # render per-case breakdowns without re-running the eval.
+    per_case_path = _LEADERBOARD_ROOT / f"{entry.runner_id.replace(':', '_')}__{args.version}__{args.split}__cases.json"
+    per_case_payload = {
+        "runner_id": entry.runner_id,
+        "version": args.version,
+        "split": args.split,
+        "mode": "memory" if args.memory else "zero_shot",
+        "seeds": list(args.seeds),
+        "cases": [
+            {
+                "case_id": r.case_id,
+                "determination": r.determination.value,
+                "ground_truth": cases_by_id[r.case_id].ground_truth_outcome.value,
+                "correct": r.correct,
+                "confidence": r.confidence,
+                "reasoning_chain": r.reasoning_chain[:500],
+                "input_tokens": r.input_tokens,
+                "output_tokens": r.output_tokens,
+                "cost_usd": r.cost_usd,
+                "latency_ms": r.latency_ms,
+                "seed": r.seed,
+                "retrieved_rule_ids": list(r.retrieved_rule_ids),
+                "applied_rules": [
+                    {"rule_id": a.rule_id, "applied": a.applied,
+                     "rationale": a.rationale}
+                    for a in r.applied_rules
+                ],
+            }
+            for r in run.flat_results()
+        ],
+    }
+    per_case_path.write_text(
+        json.dumps(per_case_payload, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(f"[eval] per-case results saved to {per_case_path}")
     return 0
 
 
@@ -215,6 +424,56 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     splits_verify.set_defaults(func=_cmd_splits_verify)
 
+    # train
+    train_p = sub.add_parser(
+        "train", help="Populate the memory store from a training split"
+    )
+    train_p.add_argument(
+        "--version", type=str, default="v0.0",
+        help="Manifest version to load the training split from",
+    )
+    train_p.add_argument(
+        "--split", type=str, default="train",
+        choices=["train", "dev"],
+        help="Which split to train on (default: train)",
+    )
+    train_p.add_argument(
+        "--model", type=str, default="haiku",
+        help="Claude model alias or pinned id (default: haiku)",
+    )
+    train_p.add_argument(
+        "--critic-model", type=str, default=None,
+        help="Optional: different model for the critic (default: same as --model)",
+    )
+    train_p.add_argument(
+        "--proposer-model", type=str, default=None,
+        help="Optional: different model for the proposer (default: same as --model)",
+    )
+    train_p.add_argument(
+        "--gate-k", type=int, default=5,
+        help="Held-out cases per candidate rule in the gen gate. "
+             "Must be >= 5 to meet the default promotion threshold "
+             "(min_total_for_promote=5). Lower values leave rules as "
+             "CANDIDATE instead of promoting to ACTIVE.",
+    )
+    train_p.add_argument(
+        "--lcd", type=str, default=None,
+        help="Path to the LCD XML policy (default: bundled fixture)",
+    )
+    train_p.add_argument(
+        "--seed", type=int, default=0,
+        help="Reproducibility seed forwarded to every runner call",
+    )
+    train_p.add_argument(
+        "--max-cases", type=int, default=None,
+        help="Cap the number of training cases processed (for cheap runs)",
+    )
+    train_p.add_argument(
+        "--append", action="store_true",
+        help="Append to an existing store instead of overwriting",
+    )
+    train_p.set_defaults(func=_cmd_train)
+
     # eval
     eval_p = sub.add_parser("eval", help="Run an AgentRunner against a split")
     eval_p.add_argument(
@@ -223,14 +482,31 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Which base runner to use (Phase 4: claude is the only wired adapter)",
     )
     eval_p.add_argument(
+        "--model", type=str, default="sonnet",
+        help="Claude model alias or pinned id (default: sonnet)",
+    )
+    eval_p.add_argument(
         "--memory", action="store_true",
-        help="Wrap the runner in the memory pipeline (Phase 5+)",
+        help="Wrap the base runner in the memory pipeline",
     )
     eval_p.add_argument(
         "--no-memory", dest="memory", action="store_false",
         help="Run zero-shot (default)",
     )
     eval_p.set_defaults(memory=False)
+    eval_p.add_argument(
+        "--rerank", action="store_true",
+        help="Enable Tier 3 LLM reranker (extra cost per memory call)",
+    )
+    eval_p.add_argument(
+        "--no-rerank", dest="rerank", action="store_false",
+        help="Skip the reranker (default — cheaper, uses Tier 2 ordering)",
+    )
+    eval_p.set_defaults(rerank=False)
+    eval_p.add_argument(
+        "--top-k", type=int, default=6,
+        help="Max retrieved rules per case (default: 6)",
+    )
     eval_p.add_argument(
         "--split", type=str, default="dev",
         choices=["train", "dev", "test"],

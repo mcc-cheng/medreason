@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MedReason MVP — Phase 5 Smoke Test</title>
+<style>
+  :root {
+    --bg: #0b0f17;
+    --bg-card: #111827;
+    --bg-card-2: #1f2937;
+    --border: #1f2937;
+    --text: #e5e7eb;
+    --text-dim: #9ca3af;
+    --text-mute: #6b7280;
+    --accent: #60a5fa;
+    --accent-dim: #1e3a8a;
+    --good: #34d399;
+    --bad: #f87171;
+    --warn: #fbbf24;
+    --mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 32px 24px 64px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 16px; margin: 32px 0 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .sub { color: var(--text-dim); font-size: 13px; margin-bottom: 8px; }
+  .meta {
+    color: var(--text-mute); font-size: 12px; font-family: var(--mono);
+    margin-bottom: 24px;
+  }
+  .grid { display: grid; gap: 12px; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 800px) {
+    .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .stat-label { color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-value { font-size: 28px; font-weight: 600; margin-top: 4px; font-family: var(--mono); }
+  .stat-sub { color: var(--text-mute); font-size: 12px; margin-top: 2px; font-family: var(--mono); }
+  .delta-good { color: var(--good); }
+  .delta-bad { color: var(--bad); }
+  .delta-flat { color: var(--text-mute); }
+
+  .headline {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .headline-stat {
+    font-size: 48px; font-weight: 700; line-height: 1; font-family: var(--mono);
+  }
+  .headline-label { color: var(--text-dim); font-size: 13px; margin-top: 8px; }
+
+  table {
+    width: 100%; border-collapse: collapse; font-family: var(--mono);
+    font-size: 12px;
+  }
+  th, td {
+    border-bottom: 1px solid var(--border);
+    padding: 8px 10px; text-align: left;
+  }
+  th { color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px; }
+  tr:hover td { background: var(--bg-card-2); }
+  td.right { text-align: right; }
+  td.center { text-align: center; }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-good { background: rgba(52, 211, 153, 0.15); color: var(--good); }
+  .badge-bad { background: rgba(248, 113, 113, 0.15); color: var(--bad); }
+  .badge-warn { background: rgba(251, 191, 36, 0.15); color: var(--warn); }
+
+  .muted { color: var(--text-mute); }
+  details {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+  }
+  summary { cursor: pointer; color: var(--text-dim); font-size: 13px; }
+  details[open] summary { margin-bottom: 12px; }
+  pre { font-family: var(--mono); white-space: pre-wrap; word-break: break-word; font-size: 12px; color: var(--text-dim); margin: 0; }
+
+  .err {
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    color: var(--bad);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: var(--mono);
+  }
+  .caveat {
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    color: var(--warn);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 12px;
+    margin-top: 16px;
+  }
+  .caveat strong { color: #fde68a; }
+</style>
+</head>
+<body>
+
+<h1>MedReason MVP — Phase 5 Smoke Test</h1>
+<p class="sub">Does memory-augmented reasoning beat zero-shot on prior auth cases?</p>
+<p class="meta" id="meta-line">loading…</p>
+
+<div id="root"></div>
+
+<script>
+async function main() {
+  const root = document.getElementById('root');
+  let data;
+  try {
+    const resp = await fetch('results.json', { cache: 'no-cache' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    data = await resp.json();
+  } catch (e) {
+    root.innerHTML = `<div class="err">Could not load results.json — ${e.message}<br>
+      Run the experiment first:<br>
+      <pre>py -m medreason_bench train --model haiku --version v0.0 --gate-k 5
+py -m medreason_bench eval --model haiku --version v0.0 --split dev --seeds 1
+py -m medreason_bench eval --memory --no-rerank --model haiku --version v0.0 --split dev --seeds 1</pre></div>`;
+    return;
+  }
+
+  document.getElementById('meta-line').textContent =
+    `model=${data.model}  •  version=${data.version}  •  split=${data.split}  •  seeds=${data.seeds.join(',')}  •  generated=${data.generated_at}`;
+
+  const zs = data.zero_shot;
+  const mem = data.memory;
+  const accDelta = mem.accuracy - zs.accuracy;
+  const tokenDelta = mem.avg_total_tokens - zs.avg_total_tokens;
+  const tokenRatio = zs.avg_total_tokens > 0 ? mem.avg_total_tokens / zs.avg_total_tokens : 0;
+  const costDelta = mem.cost_per_case_usd - zs.cost_per_case_usd;
+
+  const accDeltaCls = accDelta > 0.001 ? 'delta-good' : accDelta < -0.001 ? 'delta-bad' : 'delta-flat';
+  const tokenDeltaCls = tokenDelta < -10 ? 'delta-good' : tokenDelta > 10 ? 'delta-bad' : 'delta-flat';
+  const costDeltaCls = costDelta < -0.0001 ? 'delta-good' : costDelta > 0.0001 ? 'delta-bad' : 'delta-flat';
+
+  const verdict = accDelta > 0.05
+    ? '<span class="delta-good">Memory beats zero-shot on this slice.</span>'
+    : accDelta < -0.05
+      ? '<span class="delta-bad">Memory regresses vs zero-shot on this slice.</span>'
+      : '<span class="delta-flat">Memory ≈ zero-shot — directionally inconclusive at this sample size.</span>';
+
+  root.innerHTML = `
+    <div class="headline">
+      <div class="headline-label">Headline accuracy delta (memory − zero-shot)</div>
+      <div class="headline-stat ${accDeltaCls}">${(accDelta * 100).toFixed(1)} pp</div>
+      <div class="headline-label" style="margin-top:12px">${verdict}</div>
+    </div>
+
+    <div class="grid grid-4">
+      <div class="card">
+        <div class="stat-label">Zero-shot accuracy</div>
+        <div class="stat-value">${(zs.accuracy * 100).toFixed(1)}%</div>
+        <div class="stat-sub">${zs.correct}/${zs.n_cases} correct</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Memory accuracy</div>
+        <div class="stat-value">${(mem.accuracy * 100).toFixed(1)}%</div>
+        <div class="stat-sub">${mem.correct}/${mem.n_cases} correct</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Token ratio (mem ÷ zs)</div>
+        <div class="stat-value ${tokenDeltaCls}">${tokenRatio.toFixed(2)}×</div>
+        <div class="stat-sub">${zs.avg_total_tokens.toFixed(0)} → ${mem.avg_total_tokens.toFixed(0)}</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Cost / case</div>
+        <div class="stat-value">$${mem.cost_per_case_usd.toFixed(5)}</div>
+        <div class="stat-sub ${costDeltaCls}">Δ $${costDelta.toFixed(5)} vs zs</div>
+      </div>
+    </div>
+
+    <div class="grid grid-4" style="margin-top: 12px">
+      <div class="card">
+        <div class="stat-label">Zero-shot Brier</div>
+        <div class="stat-value">${zs.brier.toFixed(3)}</div>
+        <div class="stat-sub">ECE ${zs.ece.toFixed(3)}</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Memory Brier</div>
+        <div class="stat-value">${mem.brier.toFixed(3)}</div>
+        <div class="stat-sub">ECE ${mem.ece.toFixed(3)}</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Memory macro F1</div>
+        <div class="stat-value">${mem.macro_f1.toFixed(3)}</div>
+        <div class="stat-sub">zs ${zs.macro_f1.toFixed(3)}</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Pattern utilization</div>
+        <div class="stat-value">${mem.pattern_utilization == null ? '—' : (mem.pattern_utilization * 100).toFixed(0) + '%'}</div>
+        <div class="stat-sub">${mem.pattern_utilization == null ? 'no rules retrieved' : 'of retrieved rules applied'}</div>
+      </div>
+    </div>
+
+    <h2>Training summary</h2>
+    <div class="grid grid-4">
+      <div class="card">
+        <div class="stat-label">Cases seen</div>
+        <div class="stat-value">${data.training.n_cases_seen}</div>
+        <div class="stat-sub">${data.training.n_agent_correct} correct → ${data.training.n_critic_agreed} critic-verified</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Rules proposed</div>
+        <div class="stat-value">${data.training.n_rules_proposed}</div>
+        <div class="stat-sub">${data.training.n_rules_rejected} rejected by validators</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Rules promoted</div>
+        <div class="stat-value">${data.training.n_rules_promoted}</div>
+        <div class="stat-sub">${data.training.n_rules_deprecated} deprecated · ${data.training.n_rules_deferred} deferred</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Training cost</div>
+        <div class="stat-value">$${data.training.cost_total.toFixed(4)}</div>
+        <div class="stat-sub">${data.training.elapsed_seconds.toFixed(1)}s elapsed</div>
+      </div>
+    </div>
+
+    <h2>Per-case comparison</h2>
+    <div class="card" style="padding: 0; overflow-x: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Case</th>
+            <th>Ground truth</th>
+            <th>Zero-shot</th>
+            <th class="center">✓</th>
+            <th>Memory</th>
+            <th class="center">✓</th>
+            <th class="right">Mem rules</th>
+            <th class="right">Util</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.cases.map(renderCaseRow).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    ${data.top_rules && data.top_rules.length ? `
+      <h2>Top retrieved rules</h2>
+      <div class="card" style="padding: 0; overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Rule ID</th>
+              <th>Action</th>
+              <th class="right">Posterior</th>
+              <th class="right">Trials</th>
+              <th class="right">Seen</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.top_rules.map(r => `
+              <tr>
+                <td><span class="muted">${r.rule_id}</span></td>
+                <td>${escapeHtml(r.action)}</td>
+                <td class="right">${(r.posterior * 100).toFixed(0)}%</td>
+                <td class="right">${r.trials}</td>
+                <td class="right">${r.seen}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    ` : ''}
+
+    <div class="caveat">
+      <strong>Caveats for this MVP run:</strong>
+      Same-vendor critic (Haiku for both agent and critic) — correlated errors.
+      ${data.split === 'dev' ? `${data.cases.length}-case dev split — too small for statistical CIs; this is a directional smoke test.` : ''}
+      Synthetic cases derived from one CMS LCD fixture — overfit to the policy text.
+      FakeEmbedder (bag-of-words) instead of OpenAI embeddings.
+      Single seed; no McNemar paired test. Real eval per the rework plan needs Phase 6 (real data) + Phase 7 (cross-vendor + multi-seed).
+    </div>
+
+    <details>
+      <summary>Full per-case payload (JSON)</summary>
+      <pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>
+    </details>
+  `;
+}
+
+function renderCaseRow(c) {
+  const zsCls = c.zero_shot.correct ? 'badge-good' : 'badge-bad';
+  const memCls = c.memory.correct ? 'badge-good' : 'badge-bad';
+  const utilDisplay = c.memory.applied_count != null && c.memory.retrieved_count > 0
+    ? `${c.memory.applied_count}/${c.memory.retrieved_count}`
+    : '—';
+  return `
+    <tr>
+      <td><span class="muted">${c.case_id}</span></td>
+      <td>${c.ground_truth}</td>
+      <td>${c.zero_shot.determination}</td>
+      <td class="center"><span class="badge ${zsCls}">${c.zero_shot.correct ? '✓' : '✗'}</span></td>
+      <td>${c.memory.determination}</td>
+      <td class="center"><span class="badge ${memCls}">${c.memory.correct ? '✓' : '✗'}</span></td>
+      <td class="right">${c.memory.retrieved_count}</td>
+      <td class="right">${utilDisplay}</td>
+    </tr>
+  `;
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+main();
+</script>
+
+</body>
+</html>

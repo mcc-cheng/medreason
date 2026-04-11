@@ -47,9 +47,36 @@ CLAUDE_PRICING: dict[str, dict[str, float]] = {
         "input_per_mtok": 15.0,
         "output_per_mtok": 75.0,
     },
+    "claude-haiku-4-5-20251001": {
+        "input_per_mtok": 1.0,
+        "output_per_mtok": 5.0,
+    },
 }
 
 DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-20250514"
+HAIKU_CLAUDE_MODEL = "claude-haiku-4-5-20251001"
+
+
+# Convenience alias map for CLI flags: "sonnet" -> "claude-sonnet-4-20250514"
+CLAUDE_MODEL_ALIASES: dict[str, str] = {
+    "sonnet": "claude-sonnet-4-20250514",
+    "opus": "claude-opus-4-1-20250805",
+    "haiku": "claude-haiku-4-5-20251001",
+}
+
+
+def resolve_claude_model(name: str) -> str:
+    """Turn either a CLI alias ('haiku') or a full pinned id into a
+    validated model string. Raises ValueError if unknown."""
+    if name in CLAUDE_PRICING:
+        return name
+    if name in CLAUDE_MODEL_ALIASES:
+        return CLAUDE_MODEL_ALIASES[name]
+    raise ValueError(
+        f"Unknown Claude model {name!r}. Known aliases: "
+        f"{sorted(CLAUDE_MODEL_ALIASES.keys())}. Known pinned ids: "
+        f"{sorted(CLAUDE_PRICING.keys())}"
+    )
 DEFAULT_MAX_TOKENS = 1024
 DEFAULT_TIMEOUT_SEC = 60.0
 SYSTEM_PROMPT_FILE = "system_pa.txt"
