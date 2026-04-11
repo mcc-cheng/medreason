@@ -77,7 +77,12 @@ def resolve_claude_model(name: str) -> str:
         f"{sorted(CLAUDE_MODEL_ALIASES.keys())}. Known pinned ids: "
         f"{sorted(CLAUDE_PRICING.keys())}"
     )
-DEFAULT_MAX_TOKENS = 1024
+DEFAULT_MAX_TOKENS = 4096
+# Memory mode (system_extra non-empty) needs more headroom because the
+# agent must emit one applied_rules entry per retrieved rule on top of
+# the standard determination JSON. 1024 was too tight: with 6 rules in
+# the injection, Haiku consistently truncated mid-applied_rules and the
+# response failed JSON parsing. 4096 has comfortable headroom.
 DEFAULT_TIMEOUT_SEC = 60.0
 SYSTEM_PROMPT_FILE = "system_pa.txt"
 
@@ -188,6 +193,10 @@ class ClaudeRunner:
         )
         latency_ms = (time.time() - start) * 1000.0
 
+        # Pricing pulled out of the success path so the parse_error
+        # branch can also compute real cost.
+        pricing = CLAUDE_PRICING[self.model_version]
+
         # Extract text content. The anthropic SDK returns response.content
         # as a list of content blocks; the first one is a TextBlock for
         # non-tool-use responses.
@@ -197,16 +206,35 @@ class ClaudeRunner:
         except ResponseParseError:
             # Record the failure as a hard wrong-format result. The harness
             # may retry, but we never silently fabricate a determination.
+            #
+            # Cost: still report the real token cost — we paid for the
+            # call even though the parse failed. The previous version
+            # zeroed cost which made parse-error storms invisible in
+            # leaderboard accounting.
+            #
+            # Determination: use DENIED as the conservative fallback
+            # (NEVER ground_truth — that quietly inflates F1 to 1.0
+            # while accuracy is 0, making the metrics lie to each
+            # other). This matches _parse_outcome's "unknown -> denied"
+            # convention.
+            in_t = _usage(response, "input_tokens", 0)
+            out_t = _usage(response, "output_tokens", 0)
+            err_cost = compute_cost_usd(
+                input_tokens=in_t,
+                output_tokens=out_t,
+                input_per_mtok=pricing["input_per_mtok"],
+                output_per_mtok=pricing["output_per_mtok"],
+            )
             return AgentResult(
                 case_id=case.case_id,
-                determination=case.ground_truth_outcome,  # placeholder
+                determination=Outcome.DENIED,
                 reasoning_chain=f"[parse_error] {text[:500]}",
                 confidence=0.0,
                 key_factors=[],
-                correct=False,
-                input_tokens=_usage(response, "input_tokens", 0),
-                output_tokens=_usage(response, "output_tokens", 0),
-                cost_usd=0.0,
+                correct=(Outcome.DENIED == case.ground_truth_outcome),
+                input_tokens=in_t,
+                output_tokens=out_t,
+                cost_usd=err_cost,
                 latency_ms=latency_ms,
                 runner_id=self.runner_id,
                 seed=seed,
@@ -215,7 +243,6 @@ class ClaudeRunner:
 
         determination = _parse_outcome(data.get("determination"))
 
-        pricing = CLAUDE_PRICING[self.model_version]
         input_tokens = _usage(response, "input_tokens", 0)
         output_tokens = _usage(response, "output_tokens", 0)
         cost_usd = compute_cost_usd(

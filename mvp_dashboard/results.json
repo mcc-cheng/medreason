@@ -1,0 +1,324 @@
+{
+  "cases": [
+    {
+      "case_id": "case_0004",
+      "ground_truth": "approved",
+      "memory": {
+        "applied_count": 6,
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.008378,
+        "determination": "approved",
+        "retrieved_count": 6,
+        "tokens": 3170
+      },
+      "zero_shot": {
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.003426,
+        "determination": "approved",
+        "tokens": 1290
+      }
+    },
+    {
+      "case_id": "case_0009",
+      "ground_truth": "approved",
+      "memory": {
+        "applied_count": 4,
+        "confidence": 0.94,
+        "correct": true,
+        "cost_usd": 0.008684,
+        "determination": "approved",
+        "retrieved_count": 6,
+        "tokens": 3228
+      },
+      "zero_shot": {
+        "confidence": 0.94,
+        "correct": true,
+        "cost_usd": 0.003372,
+        "determination": "approved",
+        "tokens": 1276
+      }
+    },
+    {
+      "case_id": "case_0012",
+      "ground_truth": "approved",
+      "memory": {
+        "applied_count": 3,
+        "confidence": 0.94,
+        "correct": true,
+        "cost_usd": 0.009343,
+        "determination": "approved",
+        "retrieved_count": 6,
+        "tokens": 3387
+      },
+      "zero_shot": {
+        "confidence": 0.94,
+        "correct": true,
+        "cost_usd": 0.003298,
+        "determination": "approved",
+        "tokens": 1250
+      }
+    },
+    {
+      "case_id": "case_0022",
+      "ground_truth": "denied",
+      "memory": {
+        "applied_count": 5,
+        "confidence": 0.98,
+        "correct": true,
+        "cost_usd": 0.006657,
+        "determination": "denied",
+        "retrieved_count": 6,
+        "tokens": 2773
+      },
+      "zero_shot": {
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.002755,
+        "determination": "denied",
+        "tokens": 1123
+      }
+    },
+    {
+      "case_id": "case_0023",
+      "ground_truth": "denied",
+      "memory": {
+        "applied_count": 5,
+        "confidence": 0.98,
+        "correct": true,
+        "cost_usd": 0.007127,
+        "determination": "denied",
+        "retrieved_count": 6,
+        "tokens": 2867
+      },
+      "zero_shot": {
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.00281,
+        "determination": "denied",
+        "tokens": 1134
+      }
+    },
+    {
+      "case_id": "case_0025",
+      "ground_truth": "overturned_on_appeal",
+      "memory": {
+        "applied_count": 3,
+        "confidence": 0.78,
+        "correct": true,
+        "cost_usd": 0.009489,
+        "determination": "overturned_on_appeal",
+        "retrieved_count": 6,
+        "tokens": 3397
+      },
+      "zero_shot": {
+        "confidence": 0.78,
+        "correct": true,
+        "cost_usd": 0.003972,
+        "determination": "overturned_on_appeal",
+        "tokens": 1404
+      }
+    },
+    {
+      "case_id": "case_0032",
+      "ground_truth": "approved",
+      "memory": {
+        "applied_count": 5,
+        "confidence": 0.94,
+        "correct": true,
+        "cost_usd": 0.008461,
+        "determination": "approved",
+        "retrieved_count": 6,
+        "tokens": 3157
+      },
+      "zero_shot": {
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.003243,
+        "determination": "approved",
+        "tokens": 1271
+      }
+    },
+    {
+      "case_id": "case_0034",
+      "ground_truth": "approved",
+      "memory": {
+        "applied_count": 6,
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.00756,
+        "determination": "approved",
+        "retrieved_count": 6,
+        "tokens": 3004
+      },
+      "zero_shot": {
+        "confidence": 0.93,
+        "correct": true,
+        "cost_usd": 0.003201,
+        "determination": "approved",
+        "tokens": 1245
+      }
+    },
+    {
+      "case_id": "case_0045",
+      "ground_truth": "denied",
+      "memory": {
+        "applied_count": 1,
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.007504,
+        "determination": "denied",
+        "retrieved_count": 6,
+        "tokens": 2968
+      },
+      "zero_shot": {
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.003245,
+        "determination": "denied",
+        "tokens": 1233
+      }
+    },
+    {
+      "case_id": "case_0049",
+      "ground_truth": "denied",
+      "memory": {
+        "applied_count": 4,
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.006975,
+        "determination": "denied",
+        "retrieved_count": 6,
+        "tokens": 2827
+      },
+      "zero_shot": {
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.003315,
+        "determination": "denied",
+        "tokens": 1243
+      }
+    }
+  ],
+  "generated_at": "2026-04-11 06:39 UTC",
+  "memory": {
+    "accuracy": 1.0,
+    "avg_total_tokens": 3077.8,
+    "brier": 0.012255000000000002,
+    "correct": 10,
+    "cost_per_case_usd": 0.0080178,
+    "ece": 0.07299999999999998,
+    "macro_f1": 1.0,
+    "n_cases": 10,
+    "p50_latency_ms": 11111.282229423523,
+    "p95_latency_ms": 14674.305081367493,
+    "pattern_utilization": 0.7,
+    "total_cost_usd": 0.080178
+  },
+  "model": "haiku",
+  "seeds": [
+    11
+  ],
+  "split": "dev",
+  "top_rules": [
+    {
+      "action": "If progressive motor weakness, gait abnormality, or reflex changes documented over days, approve even if conservative therapy <6 weeks.",
+      "posterior": 0.8,
+      "rule_id": "rule_c3193e9a00",
+      "seen": 10,
+      "trials": 3
+    },
+    {
+      "action": "Approve imaging when rapidly progressive motor deficit with objective findings correlates with lumbar radiculopathy, even if <6 weeks conservative therapy.",
+      "posterior": 0.8333333333333334,
+      "rule_id": "rule_258f347d5f",
+      "seen": 8,
+      "trials": 4
+    },
+    {
+      "action": "Require documentation of new neurologic deficit, significant clinical change, or post-operative evaluation status.",
+      "posterior": 0.75,
+      "rule_id": "rule_36c6b36c4e",
+      "seen": 8,
+      "trials": 2
+    },
+    {
+      "action": "Verify new neurologic deficit, significant clinical change, or post-operative evaluation indication documented.",
+      "posterior": 0.75,
+      "rule_id": "rule_c82191b945",
+      "seen": 8,
+      "trials": 2
+    },
+    {
+      "action": "Deny imaging; pain alone without neurological findings does not meet policy criteria.",
+      "posterior": 0.75,
+      "rule_id": "rule_fe6705fb54",
+      "seen": 8,
+      "trials": 2
+    },
+    {
+      "action": "Require objective neurological findings: motor deficit, dermatomal sensory loss, reflex changes, or cauda equina signs.",
+      "posterior": 0.8,
+      "rule_id": "rule_89a36c7b25",
+      "seen": 6,
+      "trials": 3
+    },
+    {
+      "action": "Require documentation of new neurologic deficit, significant clinical change, or post-operative evaluation scenario.",
+      "posterior": 0.75,
+      "rule_id": "rule_7fc362c9c1",
+      "seen": 6,
+      "trials": 2
+    },
+    {
+      "action": "Require documentation of motor weakness progression over serial visits to justify expedited imaging.",
+      "posterior": 0.6666666666666666,
+      "rule_id": "rule_c661952a2e",
+      "seen": 6,
+      "trials": 1
+    },
+    {
+      "action": "Deny repeat imaging without documentation of new neurologic deficit or significant clinical change.",
+      "posterior": 0.6666666666666666,
+      "rule_id": "rule_d6f299f66d",
+      "seen": 6,
+      "trials": 1
+    },
+    {
+      "action": "Approve imaging without requiring 6 weeks of prior conservative therapy due to surgical emergency exception.",
+      "posterior": 0.6666666666666666,
+      "rule_id": "rule_e4dcfe4540",
+      "seen": 6,
+      "trials": 1
+    }
+  ],
+  "training": {
+    "cost_total": 0.52635,
+    "elapsed_seconds": 2185.838752,
+    "n_agent_correct": 10,
+    "n_cases_seen": 10,
+    "n_critic_agreed": 10,
+    "n_rules_deferred": 1,
+    "n_rules_deprecated": 0,
+    "n_rules_promoted": 50,
+    "n_rules_proposed": 51,
+    "n_rules_rejected": 0,
+    "n_traces_stored": 10
+  },
+  "version": "v0.0",
+  "zero_shot": {
+    "accuracy": 1.0,
+    "avg_total_tokens": 1246.9,
+    "brier": 0.014834999999999996,
+    "correct": 10,
+    "cost_per_case_usd": 0.0032637,
+    "ece": 0.089,
+    "macro_f1": 1.0,
+    "n_cases": 10,
+    "p50_latency_ms": 5549.391746520996,
+    "p95_latency_ms": 6619.397056102752,
+    "pattern_utilization": null,
+    "total_cost_usd": 0.032637
+  }
+}

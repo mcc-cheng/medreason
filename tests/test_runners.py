@@ -302,20 +302,42 @@ def test_claude_runner_unknown_determination_falls_back_to_denied():
 
 
 def test_claude_runner_parse_failure_returns_result_not_exception():
-    """A malformed response must produce a concrete AgentResult with
-    correct=False, cost 0, and the parse error visible in reasoning.
-    The harness may retry, but the runner itself must not throw."""
+    """A malformed response must produce a concrete AgentResult that:
+    - has correct=False (unless DENIED happens to be the ground truth)
+    - has the real token cost (we paid for the call, must report it)
+    - tags reasoning with [parse_error] so it's findable in audit logs
+    - falls back to DENIED as the conservative determination (NEVER
+      ground_truth — that would silently inflate F1 to 1.0 while
+      accuracy is 0)
+    The runner itself must not throw."""
+    from medreason.ontology import Outcome
     from medreason.runners import ClaudeRunner
     runner = ClaudeRunner(api_key="fake")
     runner._client = _FakeClient(_FakeResponse("not json at all", 100, 50))
-    case = make_case()
+    case = make_case(ground_truth_outcome=Outcome.APPROVED)
     result = runner.run(case)
-    assert result.correct is False
     assert result.confidence == 0.0
-    assert result.cost_usd == 0.0
     assert "parse_error" in result.reasoning_chain
     assert result.input_tokens == 100
     assert result.output_tokens == 50
+    assert result.determination == Outcome.DENIED  # conservative fallback
+    assert result.correct is False  # APPROVED ground truth, predicted DENIED
+    # Cost reflects real tokens: 100 * 3/1e6 + 50 * 15/1e6 = 0.001050
+    assert result.cost_usd == pytest.approx(0.00105, rel=1e-6)
+
+
+def test_claude_runner_parse_failure_correct_when_denied_is_ground_truth():
+    """If the ground truth happens to be DENIED, the parse_error fallback
+    yields correct=True. This is correct behavior — DENIED is the
+    sentinel, and on a denied case it happens to land right."""
+    from medreason.ontology import Outcome
+    from medreason.runners import ClaudeRunner
+    runner = ClaudeRunner(api_key="fake")
+    runner._client = _FakeClient(_FakeResponse("garbage", 100, 50))
+    case = make_case(ground_truth_outcome=Outcome.DENIED)
+    result = runner.run(case)
+    assert result.determination == Outcome.DENIED
+    assert result.correct is True
 
 
 def test_claude_runner_system_extra_prepended():
