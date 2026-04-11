@@ -67,6 +67,50 @@ def make_rule(
     )
 
 
+def make_case(
+    *,
+    case_id: str = "test-case-001",
+    payer_val: str = "Aetna",
+    cpt: str = "72148",
+    icds: list[str] | None = None,
+    facility: str = "outpatient",
+    modifiers: list[str] | None = None,
+    clinical_notes: str = (
+        "58 y/o with chronic low back pain. 8 weeks of PT plus NSAIDs without "
+        "improvement. Exam shows positive straight-leg raise bilaterally."
+    ),
+    policy_excerpt: str = "Lumbar MRI approved after 6 weeks conservative therapy.",
+    ground_truth_outcome=None,
+    ground_truth_reasoning: list[str] | None = None,
+    prior_eobs: list[str] | None = None,
+    difficulty=None,
+):
+    """Minimal BenchmarkCase for runner/eval tests."""
+    from medreason.ontology import (
+        BenchmarkCase, Difficulty, FacilityType, Outcome, Payer,
+        PriorAuthTaskConfig,
+    )
+    return BenchmarkCase(
+        case_id=case_id,
+        task_config=PriorAuthTaskConfig(
+            payer=Payer(payer_val),
+            cpt_code=cpt,
+            icd10_codes=icds or ["M54.5"],
+            modifiers=modifiers or [],
+            facility_type=FacilityType(facility),
+        ),
+        clinical_notes=clinical_notes,
+        prior_eobs=prior_eobs or [],
+        policy_excerpt=policy_excerpt,
+        ground_truth_outcome=ground_truth_outcome or Outcome.APPROVED,
+        ground_truth_reasoning=ground_truth_reasoning or [
+            "check conservative therapy duration",
+            "verify clinical findings",
+        ],
+        difficulty=difficulty or Difficulty.MEDIUM,
+    )
+
+
 def make_trace(
     *,
     source: str = "agent",
