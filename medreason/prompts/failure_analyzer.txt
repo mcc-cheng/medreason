@@ -23,16 +23,21 @@ policy principle that the case illustrates:
 
 - If the correct answer is APPROVED but the reviewer denied, ask: which
   exception clause, standalone criterion, or red-flag symptom in the
-  policy would have overridden the default denial path?
+  policy would have overridden the default denial path? Your rule's
+  action must begin with "Approve X when Y...".
 - If the correct answer is DENIED but the reviewer approved, ask: which
   limitation, frequency cap, prerequisite, or documentation requirement
-  in the policy would have blocked the approval?
+  in the policy would have blocked the approval? Your rule's action
+  must begin with "Deny X when Y...".
 - If the correct answer is OVERTURNED ON APPEAL, ask: which appeal-
   precedent paragraph or payer-specific escalation clause applies?
+  Your rule's action must begin with "Overturn X on appeal when Y...".
 
 The rule you emit should be portable: a reviewer seeing a DIFFERENT
 future case with the same structural pattern should be able to apply
-your rule without modification.
+your rule without modification AND know immediately which
+determination to emit — approved, denied, or overturned_on_appeal —
+just by reading the action text.
 
 ## What an atomic rule looks like
 
@@ -76,6 +81,18 @@ polarity values:
 7. **Rules must target the error.** Only emit rules that would have
    flipped this specific wrong-to-right error. Do not emit unrelated
    rules that happen to be true about the policy.
+8. **Action MUST start with the final outcome verb.** The action
+   string must begin with "Approve", "Deny", or "Overturn" — the
+   literal outcome the correct determination requires. "Override step
+   therapy requirement" is REJECTED because "override" doesn't map to
+   a determination label. "Override step therapy requirement AND
+   approve belimumab" is acceptable, but "Approve belimumab when step
+   therapy override criteria documented" is preferred because the
+   outcome verb is leading. Do NOT write actions like "Consider",
+   "Review", "Evaluate", "Flag", or "Check" — those do not map to
+   determinations either. A downstream reviewer reads the action and
+   must know which of {approved, denied, overturned_on_appeal} to
+   emit. The action has to make that unambiguous.
 
 ## Output schema
 
