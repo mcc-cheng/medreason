@@ -24,6 +24,7 @@ from pathlib import Path
 from .data import parse_lcd_xml
 from .data.adversarial_cases import build_adversarial_cases
 from .data.case_builder import build_cases_from_lcd
+from .data.lcd_edge_cases import build_lcd_edge_cases
 from .eval.harness import EvalConfig, run_eval
 from .leaderboard.build import build_entry, save_entry
 from .splits import (
@@ -51,12 +52,20 @@ def _store_path(version: str) -> Path:
     return _STORES_ROOT / f"{version}.db"
 
 
-def _build_claude_runner(model_alias: str):
+def _build_claude_runner(
+    model_alias: str,
+    *,
+    include_policy: bool = False,
+    policy_max_chars: int | None = None,
+):
     """Build a ClaudeRunner with a CLI-alias-resolved model."""
     from medreason.runners import ClaudeRunner, resolve_claude_model
     pinned = resolve_claude_model(model_alias)
-    suffix = ""
-    return ClaudeRunner(model=pinned, runner_id_suffix=suffix)
+    return ClaudeRunner(
+        model=pinned,
+        include_policy=include_policy,
+        policy_max_chars=policy_max_chars,
+    )
 
 
 def _build_claude_llm_client(model_alias: str):
@@ -70,6 +79,17 @@ def _cmd_data_build(args: argparse.Namespace) -> int:
         print(f"[data build] using adversarial v0.1 fixture (hand-authored)")
         cases = build_adversarial_cases()
         print(f"  loaded {len(cases)} adversarial cases")
+    elif args.source == "lcd_edge":
+        print(f"[data build] using LCD edge-case fixture (xlsx-derived)")
+        cases = build_lcd_edge_cases()
+        print(f"  loaded {len(cases)} LCD edge cases")
+    elif args.source == "combined":
+        print(f"[data build] combining v0.1 adversarial + LCD edge fixture")
+        cases = build_adversarial_cases() + build_lcd_edge_cases()
+        from collections import Counter
+        oc = Counter(c.ground_truth_outcome.value for c in cases)
+        print(f"  loaded {len(cases)} cases  (combined)")
+        print(f"  outcomes: {dict(oc)}")
     else:
         lcd_path = Path(args.lcd) if args.lcd else _DEFAULT_LCD
         if not lcd_path.exists():
@@ -270,7 +290,11 @@ def _cmd_eval(args: argparse.Namespace) -> int:
     # Build the base runner. Claude is the only fully-wired option;
     # OpenAI/Gemini are Phase 7 skeletons.
     if args.runner == "claude":
-        base_runner = _build_claude_runner(args.model)
+        base_runner = _build_claude_runner(
+            args.model,
+            include_policy=args.include_policy,
+            policy_max_chars=args.policy_max_chars,
+        )
     elif args.runner in ("gpt4", "openai"):
         from medreason.runners import OpenAIRunner
         base_runner = OpenAIRunner()
@@ -419,9 +443,12 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     data_build.add_argument(
         "--source", type=str, default="lcd",
-        choices=["lcd", "adversarial"],
+        choices=["lcd", "adversarial", "lcd_edge", "combined"],
         help="Case source: 'lcd' (template-expanded from an LCD XML, "
-             "default) or 'adversarial' (the v0.1 hand-authored fixture)",
+             "default), 'adversarial' (v0.1 hand-authored fixture), "
+             "'lcd_edge' (xlsx-derived 30 LCD edge cases), or "
+             "'combined' (v0.1 adversarial + xlsx LCD edge — 50 cases "
+             "with balanced approve/deny ratio)",
     )
     data_build.add_argument(
         "--lcd", type=str, default=None,
@@ -539,6 +566,21 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Run zero-shot (default)",
     )
     eval_p.set_defaults(memory=False)
+    eval_p.add_argument(
+        "--include-policy", action="store_true",
+        help="RAG mode: include the case's policy_excerpt in the agent's "
+             "user message. Mirrors what real prior auth companies have "
+             "(retrieved policy chunk in context). The runner_id gets "
+             "':rag' appended so leaderboard entries differentiate.",
+    )
+    eval_p.add_argument(
+        "--policy-max-chars", type=int, default=None,
+        help="Sparse-RAG mode: truncate the policy excerpt to the first "
+             "N chars before injecting. Simulates real-world RAG that "
+             "retrieves a chunk header but misses footnotes / "
+             "operational nuance. The runner_id gets ':sparseN' appended. "
+             "Only effective when --include-policy is also set.",
+    )
     eval_p.add_argument(
         "--rerank", action="store_true",
         help="Enable Tier 3 LLM reranker (extra cost per memory call)",

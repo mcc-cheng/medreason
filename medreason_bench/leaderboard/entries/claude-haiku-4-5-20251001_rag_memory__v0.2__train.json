@@ -1,0 +1,30 @@
+{
+  "accuracy_ci_high": 1.0,
+  "accuracy_ci_low": 0.9,
+  "accuracy_mean": 0.9666666666666667,
+  "avg_total_tokens": 2292.133333333333,
+  "base_model": "claude-haiku-4-5-20251001",
+  "brier": 0.06247166666666666,
+  "code_revision": "",
+  "cost_per_case_usd": 0.005859333333333333,
+  "dataset_version": "v0.2",
+  "delta_accuracy_pp": null,
+  "ece": 0.010999999999999899,
+  "macro_f1": 0.9555555555555556,
+  "mcnemar_method": null,
+  "mcnemar_p_vs_zero_shot": null,
+  "memory_pipeline_version": "none",
+  "n_cases": 30,
+  "p50_latency_ms": 6642.988443374634,
+  "p95_latency_ms": 13885.306167602534,
+  "pattern_utilization": 0.45454545454545453,
+  "prompts_lock_sha": "4a6987f679689c067ffdc8bd3eca163eb57cd81c96f9f202a91b3b677eb28d5f",
+  "runner_id": "claude-haiku-4-5-20251001:rag:memory",
+  "seed_set": [
+    11
+  ],
+  "split": "train",
+  "submitted_at": "2026-04-11T08:55:37.594069Z",
+  "submitter": "local",
+  "total_cost_usd": 0.17578
+}

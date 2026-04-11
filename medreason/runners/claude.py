@@ -107,6 +107,8 @@ class ClaudeRunner:
         max_tokens: int = DEFAULT_MAX_TOKENS,
         timeout_sec: float = DEFAULT_TIMEOUT_SEC,
         runner_id_suffix: str = "",
+        include_policy: bool = False,
+        policy_max_chars: Optional[int] = None,
     ):
         if model not in CLAUDE_PRICING:
             raise ValueError(
@@ -115,12 +117,25 @@ class ClaudeRunner:
             )
         self._api_key = api_key if api_key is not None else ANTHROPIC_API_KEY
         self.model_version = model
-        self.runner_id = (
-            f"{model}:{runner_id_suffix}" if runner_id_suffix else model
-        )
+        # When include_policy=True, append ":rag" to the runner_id so
+        # leaderboard entries differentiate RAG from plain zero-shot.
+        # When policy_max_chars is set (sparse retrieval mode), append
+        # ":sparse<N>" to differentiate from full RAG.
+        suffix_parts = []
+        if include_policy:
+            if policy_max_chars is not None and policy_max_chars > 0:
+                suffix_parts.append(f"sparse{policy_max_chars}")
+            else:
+                suffix_parts.append("rag")
+        if runner_id_suffix:
+            suffix_parts.append(runner_id_suffix)
+        suffix = "_".join(suffix_parts)
+        self.runner_id = f"{model}:{suffix}" if suffix else model
         self.supports_memory = True
         self._max_tokens = max_tokens
         self._timeout_sec = timeout_sec
+        self._include_policy = include_policy
+        self._policy_max_chars = policy_max_chars
         self._client: Any = None  # lazy; tests can set directly
 
     # ── Client lifecycle ────────────────────────────────────────────────────
@@ -181,7 +196,11 @@ class ClaudeRunner:
         system = (
             f"{system_extra.strip()}\n\n{system_base}" if system_extra else system_base
         )
-        user_msg = build_case_prompt(case, include_policy=False)
+        user_msg = build_case_prompt(
+            case,
+            include_policy=self._include_policy,
+            policy_max_chars=self._policy_max_chars,
+        )
 
         client = self._get_client()
         start = time.time()

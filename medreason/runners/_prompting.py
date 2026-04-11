@@ -18,13 +18,26 @@ from ..ontology.case import BenchmarkCase
 # ── Case prompt builder ──────────────────────────────────────────────────────
 
 
-def build_case_prompt(case: BenchmarkCase, *, include_policy: bool = False) -> str:
+def build_case_prompt(
+    case: BenchmarkCase,
+    *,
+    include_policy: bool = False,
+    policy_max_chars: int | None = None,
+) -> str:
     """Deterministic case-view rendered for the agent.
 
     By default the policy excerpt is withheld — the agent must rely on
     general knowledge (or retrieved memory) to apply coverage criteria.
-    Setting `include_policy=True` is the policy-chunk-RAG baseline that
-    we'll compare against in Phase 7.
+    Setting `include_policy=True` is the policy-chunk-RAG baseline.
+
+    `policy_max_chars` simulates **sparse RAG** — real-world retrieval
+    pipelines often surface only a chunk header / first paragraph and
+    miss the operational nuance buried later in the document. When this
+    is set to N, the policy excerpt is truncated to the first N
+    characters with an explicit "[...truncated...]" marker so the agent
+    knows it's seeing partial text. Used by the Option B experiment
+    that tests whether memory can recover accuracy lost to sparse
+    retrieval. Ignored when include_policy is False.
     """
     parts: list[str] = [
         "## Prior Authorization Review",
@@ -43,7 +56,13 @@ def build_case_prompt(case: BenchmarkCase, *, include_policy: bool = False) -> s
     ])
 
     if include_policy and case.policy_excerpt:
-        parts.extend(["", "### Payer Policy Excerpt", case.policy_excerpt.strip()])
+        excerpt = case.policy_excerpt.strip()
+        if policy_max_chars is not None and policy_max_chars > 0 and len(excerpt) > policy_max_chars:
+            excerpt = excerpt[:policy_max_chars] + "\n\n[...truncated — only the first chunk of the policy was retrieved by RAG...]"
+            section_label = "### Payer Policy Excerpt (sparse retrieval — partial text)"
+        else:
+            section_label = "### Payer Policy Excerpt"
+        parts.extend(["", section_label, excerpt])
     else:
         parts.extend([
             "",

@@ -1,0 +1,28 @@
+{
+  "cost_agent": 0.10262,
+  "cost_critic": 0.0486,
+  "cost_gate": 0.0,
+  "cost_proposer": 0.045,
+  "cost_total": 0.19622,
+  "elapsed_seconds": 378.545799,
+  "finished_at": "2026-04-11T08:50:49.072824+00:00",
+  "n_agent_correct": 27,
+  "n_cases_seen": 30,
+  "n_critic_agreed": 25,
+  "n_critic_invoked": 27,
+  "n_proposer_invoked": 25,
+  "n_rules_deferred": 0,
+  "n_rules_deprecated": 0,
+  "n_rules_gated": 80,
+  "n_rules_promoted": 80,
+  "n_rules_proposed": 80,
+  "n_rules_rejected": 1,
+  "n_traces_stored": 25,
+  "rejection_reasons": [
+    "PatientIdentifierError: semantic_predicate contains identifier-like string '50 years old'"
+  ],
+  "runner_id": "claude-haiku-4-5-20251001",
+  "split": "train",
+  "started_at": "2026-04-11T08:44:30.527025+00:00",
+  "version": "v0.2"
+}
