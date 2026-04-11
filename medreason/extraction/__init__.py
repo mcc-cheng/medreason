@@ -21,6 +21,12 @@ pipeline's failure mode.
 """
 
 from .critic import CriticResult, run_critic
+from .generalization_gate import (
+    DEFAULT_THRESHOLDS,
+    GateResult,
+    GateThresholds,
+    GeneralizationGate,
+)
 from .rule_proposer import (
     PatientIdentifierError,
     PolicyCitationError,
@@ -37,4 +43,8 @@ __all__ = [
     "PolicyCitationError",
     "PatientIdentifierError",
     "propose_rules",
+    "GeneralizationGate",
+    "GateResult",
+    "GateThresholds",
+    "DEFAULT_THRESHOLDS",
 ]
