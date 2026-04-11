@@ -1,4 +1,13 @@
-"""Pattern store — PostgreSQL+pgvector with SQLite+numpy fallback."""
+"""Legacy pattern store — PRE-REWORK code, do not use in new modules.
+
+This is the original `medreason/store.py` PatternStore, moved into the
+store package so the pre-rework agent / injector / benchmark keep working
+until Phase 5 replaces them. The relative imports are updated to match the
+new package location (medreason/store/_legacy_pattern_store.py).
+
+When Phase 5h replaces injector.py and Phase 5i replaces agent.py, this
+file can be deleted.
+"""
 
 from __future__ import annotations
 
@@ -10,8 +19,8 @@ from typing import Optional
 
 import numpy as np
 
-from .config import DATABASE_URL, EMBEDDING_DIM, SQLITE_PATH
-from .ontology import PriorAuthTaskConfig, ReasoningPattern
+from ..config import DATABASE_URL, EMBEDDING_DIM, SQLITE_PATH
+from ..ontology import PriorAuthTaskConfig, ReasoningPattern
 
 
 def _deterministic_embedding(text: str) -> list[float]:
@@ -32,7 +41,7 @@ def _embed(task_config: PriorAuthTaskConfig) -> list[float]:
     )
     try:
         from openai import OpenAI
-        from .config import OPENAI_API_KEY
+        from ..config import OPENAI_API_KEY
         if OPENAI_API_KEY:
             client = OpenAI(api_key=OPENAI_API_KEY)
             resp = client.embeddings.create(
@@ -45,7 +54,8 @@ def _embed(task_config: PriorAuthTaskConfig) -> list[float]:
 
 
 class PatternStore:
-    """Hybrid pattern store with PostgreSQL primary and SQLite fallback."""
+    """Legacy pattern store. Will be removed when Phase 5 replaces the
+    pre-rework agent / injector / benchmark that depend on it."""
 
     def __init__(self):
         self._pg_conn = None
