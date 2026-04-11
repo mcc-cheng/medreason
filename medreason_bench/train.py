@@ -42,6 +42,7 @@ from medreason.extraction import (
     DEFAULT_THRESHOLDS as GATE_DEFAULTS,
     GateResult,
     GeneralizationGate,
+    analyze_failure,
     propose_rules,
     run_critic,
 )
@@ -87,11 +88,22 @@ class TrainingReport:
     n_rules_deprecated: int = 0
     n_rules_deferred: int = 0
 
+    # Phase 51 — failure-driven extractor counters. Set when
+    # TrainingConfig.include_failures is True and the agent reaches a
+    # wrong determination, which triggers analyze_failure instead of
+    # the normal critic→propose path.
+    n_agent_wrong: int = 0
+    n_failure_analyzer_invoked: int = 0
+    n_failure_rules_proposed: int = 0
+    n_failure_rules_rejected: int = 0
+    n_failure_rules_promoted: int = 0
+
     # Accumulated cost (USD)
     cost_agent: float = 0.0
     cost_critic: float = 0.0
     cost_proposer: float = 0.0
     cost_gate: float = 0.0
+    cost_failure_analyzer: float = 0.0
 
     # Miscellaneous diagnostics
     rejection_reasons: list[str] = field(default_factory=list)
@@ -99,7 +111,13 @@ class TrainingReport:
 
     @property
     def cost_total(self) -> float:
-        return self.cost_agent + self.cost_critic + self.cost_proposer + self.cost_gate
+        return (
+            self.cost_agent
+            + self.cost_critic
+            + self.cost_proposer
+            + self.cost_gate
+            + self.cost_failure_analyzer
+        )
 
     @property
     def elapsed_seconds(self) -> float:
@@ -127,10 +145,16 @@ class TrainingReport:
             "n_rules_promoted": self.n_rules_promoted,
             "n_rules_deprecated": self.n_rules_deprecated,
             "n_rules_deferred": self.n_rules_deferred,
+            "n_agent_wrong": self.n_agent_wrong,
+            "n_failure_analyzer_invoked": self.n_failure_analyzer_invoked,
+            "n_failure_rules_proposed": self.n_failure_rules_proposed,
+            "n_failure_rules_rejected": self.n_failure_rules_rejected,
+            "n_failure_rules_promoted": self.n_failure_rules_promoted,
             "cost_agent": round(self.cost_agent, 5),
             "cost_critic": round(self.cost_critic, 5),
             "cost_proposer": round(self.cost_proposer, 5),
             "cost_gate": round(self.cost_gate, 5),
+            "cost_failure_analyzer": round(self.cost_failure_analyzer, 5),
             "cost_total": round(self.cost_total, 5),
             "rejection_reasons": self.rejection_reasons[:20],
         }
@@ -180,6 +204,20 @@ class TrainingConfig:
     # for debugging or ultra-cheap runs). None = process all.
     max_cases: Optional[int] = None
 
+    # Phase 51 — failure-driven extraction. When True, cases where the
+    # agent reaches the WRONG determination are routed to
+    # `analyze_failure` instead of being discarded. This is the
+    # architectural fix for the chicken-and-egg identified in Phase 6:
+    # the hardest cases (adv_004, adv_006, adv_014, adv_015 in v0.2)
+    # never produced a rule because the agent always got them wrong,
+    # so the store had zero rules to retrieve for them at eval time.
+    include_failures: bool = False
+
+    # LLM client used for failure analysis. Defaults to proposer_llm
+    # when None. Could be a different vendor for cross-vendor
+    # corroboration (Phase 7 concern).
+    failure_analyzer_llm: Optional[LLMClient] = None
+
 
 # ── The training loop ──────────────────────────────────────────────────────
 
@@ -225,86 +263,131 @@ def run_training(config: TrainingConfig) -> TrainingReport:
         # ── Stage 1: zero-shot agent ────────────────────────────────────
         agent_result = config.runner.run(case, seed=config.seed)
         report.cost_agent += agent_result.cost_usd
-        if not agent_result.correct:
-            _log(config.progress_hook, "  agent wrong — skipping")
-            continue
-        report.n_agent_correct += 1
 
-        # ── Stage 2: critic verification ─────────────────────────────────
-        report.n_critic_invoked += 1
-        critic_result = run_critic(
-            case,
-            agent_determination=agent_result.determination,
-            llm_client=config.critic_llm,
-            seed=config.seed,
-        )
-        # We can't directly read critic cost from CriticResult — the
-        # critic internally calls llm_client.complete which returns
-        # LLMResponse.cost_usd, but run_critic discards it. For the
-        # first cheap run we estimate via the runner's est cost.
-        # TODO: thread cost_usd through CriticResult in a follow-up.
-        report.cost_critic += config.runner.estimated_cost_per_call()
+        # Per-case state that the shared promotion block below uses to
+        # route counters and logs to either the normal path or the
+        # failure-analyzer path.
+        proposal = None
+        is_failure_path = False
 
-        if not critic_result.agrees:
-            _log(config.progress_hook,
-                 f"  critic {critic_result.reason} — skipping")
-            continue
-        report.n_critic_agreed += 1
+        if agent_result.correct:
+            # ── Normal path: critic → trace → propose ──────────────────
+            report.n_agent_correct += 1
 
-        # Persist the verified trace
-        assert critic_result.trace is not None
-        config.trace_store.put(critic_result.trace)
-        report.n_traces_stored += 1
-
-        # ── Stage 3: rule proposer ───────────────────────────────────────
-        # If running on a multi-policy fixture (config.policy is None),
-        # pass the case's own policy_excerpt as the source text. The
-        # proposer's citation validator becomes a wildcard in that mode
-        # — it accepts any well-formed §X.Y citation without requiring
-        # a structured policy lookup.
-        report.n_proposer_invoked += 1
-        if config.policy is None:
-            proposal = propose_rules(
-                critic_result.trace,
-                None,
-                config.proposer_llm,
-                supporting_case_ids=[case.case_id],
+            # Stage 2: critic verification
+            report.n_critic_invoked += 1
+            critic_result = run_critic(
+                case,
+                agent_determination=agent_result.determination,
+                llm_client=config.critic_llm,
                 seed=config.seed,
-                policy_excerpt_text=case.policy_excerpt,
             )
+            # We can't directly read critic cost from CriticResult — the
+            # critic internally calls llm_client.complete which returns
+            # LLMResponse.cost_usd, but run_critic discards it. For the
+            # first cheap run we estimate via the runner's est cost.
+            # TODO: thread cost_usd through CriticResult in a follow-up.
+            report.cost_critic += config.runner.estimated_cost_per_call()
+
+            if not critic_result.agrees:
+                _log(config.progress_hook,
+                     f"  critic {critic_result.reason} — skipping")
+                continue
+            report.n_critic_agreed += 1
+
+            # Persist the verified trace
+            assert critic_result.trace is not None
+            config.trace_store.put(critic_result.trace)
+            report.n_traces_stored += 1
+
+            # Stage 3: rule proposer
+            # If running on a multi-policy fixture (config.policy is None),
+            # pass the case's own policy_excerpt as the source text. The
+            # proposer's citation validator becomes a wildcard in that
+            # mode — it accepts any well-formed §X.Y citation without
+            # requiring a structured policy lookup.
+            report.n_proposer_invoked += 1
+            if config.policy is None:
+                proposal = propose_rules(
+                    critic_result.trace,
+                    None,
+                    config.proposer_llm,
+                    supporting_case_ids=[case.case_id],
+                    seed=config.seed,
+                    policy_excerpt_text=case.policy_excerpt,
+                )
+            else:
+                proposal = propose_rules(
+                    critic_result.trace,
+                    config.policy,
+                    config.proposer_llm,
+                    supporting_case_ids=[case.case_id],
+                    seed=config.seed,
+                )
+            report.cost_proposer += config.runner.estimated_cost_per_call()
+            report.n_rules_proposed += proposal.n_candidates
+            report.n_rules_rejected += proposal.n_rejected
         else:
-            proposal = propose_rules(
-                critic_result.trace,
-                config.policy,
-                config.proposer_llm,
+            # ── Phase 51: failure-driven extraction ────────────────────
+            # Agent got this case wrong. Under the default config we
+            # discard the case (chicken-and-egg: the hardest cases
+            # never produce a rule). Under include_failures=True we
+            # route the case to analyze_failure instead, which reasons
+            # through the policy to find a corrective rule that would
+            # have led a reviewer to the ground-truth outcome.
+            report.n_agent_wrong += 1
+            if not config.include_failures:
+                _log(config.progress_hook, "  agent wrong — skipping")
+                continue
+
+            _log(config.progress_hook,
+                 f"  agent wrong (pred={agent_result.determination.value}, "
+                 f"gt={case.ground_truth_outcome.value}) — running failure analyzer")
+            report.n_failure_analyzer_invoked += 1
+            is_failure_path = True
+
+            analyzer_llm = config.failure_analyzer_llm or config.proposer_llm
+            proposal = analyze_failure(
+                case,
+                agent_determination=agent_result.determination,
+                ground_truth_outcome=case.ground_truth_outcome,
+                llm_client=analyzer_llm,
+                policy=config.policy,
                 supporting_case_ids=[case.case_id],
                 seed=config.seed,
             )
-        report.cost_proposer += config.runner.estimated_cost_per_call()
-        report.n_rules_proposed += proposal.n_candidates
-        report.n_rules_rejected += proposal.n_rejected
+            report.cost_failure_analyzer += config.runner.estimated_cost_per_call()
+            report.n_failure_rules_proposed += proposal.n_candidates
+            report.n_failure_rules_rejected += proposal.n_rejected
+
+        # ── Shared rejection/empty handling ──────────────────────────────
         if proposal.n_rejected:
             for _, reason in proposal.rejected[:3]:
                 report.rejection_reasons.append(reason)
 
         if not proposal.candidates:
-            _log(config.progress_hook, "  proposer returned no candidates")
+            _log(config.progress_hook,
+                 "  proposer returned no candidates" if not is_failure_path
+                 else "  failure analyzer returned no candidates")
             continue
 
         _log(config.progress_hook,
-             f"  proposer: {proposal.n_candidates} candidate(s), "
+             f"  {'failure analyzer' if is_failure_path else 'proposer'}: "
+             f"{proposal.n_candidates} candidate(s), "
              f"{proposal.n_rejected} rejected")
 
-        # ── Stage 4: generalization gate ─────────────────────────────────
+        # ── Stage 4: generalization gate (shared promotion block) ───────
         # Held-out pool: every other train case. This is the entire
         # train split minus the current case, capped by the gate's
         # internal k-limit.
         #
         # When config.skip_gate is True (used for sparse multi-policy
         # fixtures where every case has a unique trigger and the gate
-        # finds 0 matching cases), we promote every critic-verified
-        # candidate directly. Critic verification is the only quality
-        # filter in this mode.
+        # finds 0 matching cases), we promote every verified candidate
+        # directly. For normal rules, critic verification is the only
+        # quality filter in this mode. For failure-derived rules, the
+        # only quality filter is the failure analyzer's citation +
+        # PII + action-length validators.
         if config.skip_gate:
             for cand in proposal.candidates:
                 report.n_rules_gated += 1
@@ -314,17 +397,24 @@ def run_training(config: TrainingConfig) -> TrainingReport:
                     "status": "active",
                     "score": 1.0,
                     "trials": 0,
-                    "reason": "skip_gate=True (critic-verified only)",
+                    "reason": (
+                        "skip_gate=True (failure-derived, validators only)"
+                        if is_failure_path
+                        else "skip_gate=True (critic-verified only)"
+                    ),
                 })
                 cand.status = RuleStatus.ACTIVE
                 emb = embedder.embed(_rule_repr(cand))
                 cand.trigger.semantic_embedding = emb
                 cand.trigger.embedding_model = embedder.model_id
                 config.store.put(cand)
-                report.n_rules_promoted += 1
+                if is_failure_path:
+                    report.n_failure_rules_promoted += 1
+                else:
+                    report.n_rules_promoted += 1
                 _log(config.progress_hook,
                      f"  promoted {cand.rule_id} (skip_gate, "
-                     f"critic-verified only)")
+                     f"{'failure-derived' if is_failure_path else 'critic-verified'})")
             continue
 
         held_out = [c for c in cases if c.case_id != case.case_id]
@@ -364,7 +454,10 @@ def run_training(config: TrainingConfig) -> TrainingReport:
                 cand.trigger.semantic_embedding = emb
                 cand.trigger.embedding_model = embedder.model_id
                 config.store.put(cand)
-                report.n_rules_promoted += 1
+                if is_failure_path:
+                    report.n_failure_rules_promoted += 1
+                else:
+                    report.n_rules_promoted += 1
                 _log(config.progress_hook,
                      f"  promoted {cand.rule_id} "
                      f"(score={gate_result.score:.2f}, n={gate_result.total_trials})")

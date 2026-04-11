@@ -273,6 +273,129 @@ def test_run_training_gate_cost_reflects_trials(sqlite_conn, policy, train_cases
         assert report.cost_gate > 0
 
 
+class _AlwaysWrongRunner:
+    """Base runner that always reaches a determination DIFFERENT from
+    ground truth. Used to exercise the failure-analyzer training path."""
+    runner_id = "always-wrong-v0"
+    model_version = "always-wrong-v0"
+    supports_memory = True
+
+    def __init__(self):
+        self.calls = 0
+
+    def run(self, case, *, seed: int = 0, system_extra: str = ""):
+        self.calls += 1
+        # Pick any outcome that's NOT the ground truth
+        wrong = next(
+            o for o in (Outcome.APPROVED, Outcome.DENIED, Outcome.OVERTURNED_ON_APPEAL)
+            if o != case.ground_truth_outcome
+        )
+        return AgentResult(
+            case_id=case.case_id,
+            determination=wrong,
+            reasoning_chain="wrong reasoning",
+            confidence=0.5,
+            correct=False,
+            input_tokens=400,
+            output_tokens=100,
+            cost_usd=0.0015,
+            latency_ms=250,
+            runner_id=self.runner_id,
+            seed=seed,
+            mode="memory" if system_extra else "zero_shot",
+        )
+
+    def estimated_cost_per_call(self) -> float:
+        return 0.0015
+
+
+def test_run_training_include_failures_routes_wrong_cases(
+    sqlite_conn, policy, train_cases
+):
+    """Phase 51: include_failures=True should promote rules from cases
+    the agent got wrong, using analyze_failure instead of the normal
+    critic→proposer path. Critic should NEVER be invoked on those cases."""
+    # The failure analyzer shares the LLM client with the proposer slot
+    # when failure_analyzer_llm is None. Give the proposer_llm one
+    # response per case — enough to serve every failure_analyzer call.
+    proposer_responses = [_one_proposal() for _ in train_cases]
+
+    # Critic responses should be UNUSED — we assert len(critic.calls) == 0
+    critic_llm = FakeLLMClient(responses=[])
+    proposer_llm = FakeLLMClient(responses=proposer_responses)
+    runner = _AlwaysWrongRunner()
+    rule_store = RuleStore(sqlite_conn)
+    trace_store = TraceStore(sqlite_conn)
+
+    config = TrainingConfig(
+        runner=runner,
+        critic_llm=critic_llm,
+        proposer_llm=proposer_llm,
+        store=rule_store,
+        trace_store=trace_store,
+        policy=policy,
+        train_cases=train_cases,
+        gate_k=5,
+        include_failures=True,
+        # skip_gate=True: the AlwaysWrongRunner would fail every gate
+        # trial, deprecating every candidate. skip_gate=True is the
+        # real-world configuration for sparse fixtures anyway (v0.1,
+        # v0.2 — see SESSION_BRIEF §4). Keeping it True here isolates
+        # the failure-analyzer wiring from gate behavior.
+        skip_gate=True,
+    )
+    report = run_training(config)
+
+    assert report.n_cases_seen == len(train_cases)
+    assert report.n_agent_correct == 0
+    assert report.n_agent_wrong == len(train_cases)
+    assert report.n_failure_analyzer_invoked == len(train_cases)
+    assert report.n_failure_rules_proposed == len(train_cases)
+    assert report.n_failure_rules_promoted == len(train_cases)
+    # Normal-path counters stay at zero
+    assert report.n_critic_invoked == 0
+    assert report.n_rules_proposed == 0
+    assert report.n_rules_promoted == 0
+    # Critic LLM must not have been called
+    assert len(critic_llm.calls) == 0
+    # Failure-analyzer cost was accumulated
+    assert report.cost_failure_analyzer > 0
+    # Promoted rules land in the same ACTIVE store as normal-path rules
+    assert rule_store.count(RuleStatus.ACTIVE) == len(train_cases)
+
+
+def test_run_training_default_skips_wrong_cases_without_flag(
+    sqlite_conn, policy, train_cases
+):
+    """Default (include_failures=False): wrong cases are skipped,
+    failure counters stay at 0, no LLM calls for analysis."""
+    critic_llm = FakeLLMClient(responses=[])
+    proposer_llm = FakeLLMClient(responses=[])
+    runner = _AlwaysWrongRunner()
+    rule_store = RuleStore(sqlite_conn)
+    trace_store = TraceStore(sqlite_conn)
+
+    config = TrainingConfig(
+        runner=runner,
+        critic_llm=critic_llm,
+        proposer_llm=proposer_llm,
+        store=rule_store,
+        trace_store=trace_store,
+        policy=policy,
+        train_cases=train_cases,
+        gate_k=5,
+        include_failures=False,
+    )
+    report = run_training(config)
+
+    assert report.n_cases_seen == len(train_cases)
+    assert report.n_agent_wrong == len(train_cases)
+    assert report.n_failure_analyzer_invoked == 0
+    assert report.n_failure_rules_promoted == 0
+    assert report.cost_failure_analyzer == 0.0
+    assert rule_store.count(RuleStatus.ACTIVE) == 0
+
+
 def test_run_training_report_json_roundtrip(sqlite_conn, policy, train_cases):
     critic_llm = FakeLLMClient(responses=[_critic_agrees(c.ground_truth_outcome) for c in train_cases])
     proposer_llm = FakeLLMClient(responses=[_empty_proposal() for _ in train_cases])

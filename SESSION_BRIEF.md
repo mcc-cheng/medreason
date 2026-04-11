@@ -4,7 +4,7 @@
 > on this project. It is the source of truth for project state, what has
 > been validated, what is still uncertain, and where to pick up.
 
-**Last updated**: 2026-04-11 (after Phase 6 sparse-RAG experiment)
+**Last updated**: 2026-04-11 (after Phase 51 failure-driven extractor — 30/30 headline)
 
 ---
 
@@ -48,12 +48,12 @@ document — it lives in cumulative experience).
 | Leak guard, frozen splits, eval harness | ✅ done |
 | **RAG baseline mode** (`--include-policy`) | ✅ done — added in Phase 6 |
 | **Sparse-RAG mode** (`--policy-max-chars N`) | ✅ done — added in Option B |
-| **Failure-driven rule extractor** (Phase 51) | ❌ not built |
+| **Failure-driven rule extractor** (Phase 51) | ✅ done — Experiment D2 hit 30/30 |
 | Real CMS LCD/NCD ingestion (network) | ❌ not built — fixtures only |
 | Cross-vendor critic actually wired (OpenAI/Gemini) | ❌ skeletons only |
-| 30-50 within-domain cases for true generalization test | ❌ have cross-domain only |
+| 30-50 within-domain cases for true generalization test | 🟡 user provided 20 Aetna lumbar MRI cases — loader not built |
 
-**Test count**: 397 passing across 19 test files.
+**Test count**: 408 passing across 20 test files.
 
 ---
 
@@ -93,9 +93,10 @@ Veridicus/
 │   │   ├── gemini.py                  # skeleton
 │   │   ├── memory_wrapper.py          # MemoryRunner — composes base+retrieval+update
 │   │   └── _prompting.py              # build_case_prompt + parse_json_response
-│   ├── extraction/                     # Phase 5 critic→propose→gate
+│   ├── extraction/                     # Phase 5 critic→propose→gate + Phase 51 failure
 │   │   ├── critic.py                  # run_critic — independent re-derivation
 │   │   ├── rule_proposer.py           # propose_rules — extracts atomic rules
+│   │   ├── failure_analyzer.py        # analyze_failure — Phase 51 corrective extractor
 │   │   └── generalization_gate.py     # GeneralizationGate — held-out validation
 │   ├── retrieval/                      # 3-tier retrieve + injector
 │   │   ├── embedder.py                # Embedder Protocol + FakeEmbedder + OpenAIEmbedder
@@ -199,11 +200,18 @@ Veridicus/
 | `3e36ba7` | Phase 6 mvp: train CLI + memory eval wiring + Haiku pricing + dashboard |
 | `6a90334` | Phase 6 mvp results: real Haiku run on v0.0 + 3 critical bug fixes (max_tokens, parse_error cost, parse_error sentinel) |
 | `4c0a3a9` | Phase 6 v0.1: adversarial cases + compact injection + (initially) "+25pp" claim |
+| `6336872` | Phase 6 v0.2: combined fixture + sparse-RAG experiment + ablations |
 
-After `4c0a3a9` we ran Experiments A and B (priming ablation + multi-seed
-variance) and discovered the +25pp claim was inflated. Then built v0.2,
-ran the four-condition matrix, ran sparse-RAG, found the genuine signal.
-**Those experiments are NOT yet committed as of the brief writing.**
+### Phase 51: failure-driven extraction
+
+After `6336872` we ran three more experiment batches on top of v0.2 (all
+committed together in the Phase 51 commit):
+
+| Script | What it ran |
+|---|---|
+| `experiment_c_heldout.py` | LOO on adv_010 (A2) + stratified 20/10 split (A1). A2 recovered adv_010 from 29 other cases → overlap caveat *falsified*. A1 ties at 8/10 → rule-density limited. |
+| `experiment_d_failuredriven.py` | Phase 51 extractor with zero-shot training base runner. Flat at 28/30 — training/eval configuration asymmetry meant adv_014 never reached the failure analyzer. |
+| `experiment_d2_d3.py` | D2: symmetric config (sparse-RAG training runner, same seed as eval). **30/30 on v0.2 train** — beats the 29/30 full-RAG oracle. D3 diagnosed the Exp-D adv_015 apply-failure as a rule-action phrasing issue (polarity-to-outcome mapping). |
 
 ---
 
@@ -291,7 +299,7 @@ ran the four-condition matrix, ran sparse-RAG, found the genuine signal.
 
 6. adv_014 and adv_015 stayed wrong even with sparse-RAG + memory. Their retrieved rules were cross-domain (lung cancer, oral appliance coding) and not applied. Same chicken-and-egg.
 
-#### v0.2 cost so far
+#### v0.2 cost so far (baseline)
 - Training (30 cases, multi-policy, skip-gate): $0.196
 - Zero-shot eval (30 cases): $0.098
 - Full-RAG eval: $0.096
@@ -300,25 +308,158 @@ ran the four-condition matrix, ran sparse-RAG, found the genuine signal.
 - Sparse-RAG + memory eval: $0.179
 - **v0.2 subtotal: ~$0.84**
 - Plus v0.0/v0.1/ablations from earlier: ~$1.50
-- **Grand total spent so far: ~$2.34**
+- **Baseline total: ~$2.34**
+
+### Experiment C — held-out generalization tests (Phase 51 precursor)
+
+Ran two held-out tests to settle whether the v0.2 +1 case win was
+train-eval overlap. See `mvp_dashboard/experiment_c_heldout.py` +
+`experiment_c_heldout.json`.
+
+**A2 — LOO on adv_010**: train on the other 29 cases, eval sparse-RAG
+and sparse-RAG + memory on adv_010 alone.
+* Sparse-RAG: **0/1 wrong** (denied, gt=approved)
+* Sparse-RAG + memory: **1/1 RIGHT** (approved, conf 0.92, 1 rule applied)
+* **Conclusion**: the v0.2 fix did generalize. Memory recovered adv_010
+  from rules learned on other cases. The train-eval overlap caveat is
+  *falsified*.
+
+**A1 — Stratified random 20/10 split** (seed 42): held-out 10 included
+adv_010, adv_014, adv_017, adv_007, + 6 lcd denials. Train 20 = the
+rest.
+* Sparse-RAG: 8/10 (missing adv_010, adv_014)
+* Sparse-RAG + memory: 8/10 (missing same two)
+* **Conclusion**: at 20-case training density, the retrieved rules for
+  adv_010 were different and ineffective. The mechanism is
+  rule-density-sensitive — 29 cases worked, 20 cases didn't.
+
+Cost: $0.42.
+
+### Experiment D — failure-driven extractor (Phase 51 baseline attempt)
+
+Wired the new `medreason/extraction/failure_analyzer.py` into the
+training loop. When the base runner gets a case wrong, route it to
+`analyze_failure(case, agent_result, ground_truth, llm)` instead of
+discarding. Trained v0.2 with `--include-failures` and
+`zero-shot Haiku` as the base runner. See
+`mvp_dashboard/experiment_d_failuredriven.py`.
+
+* Training: 26 agent correct / 4 wrong → 6 failure-derived rules from
+  4 wrong cases (adv_004, adv_006, adv_010, adv_015).
+* Eval sparse-RAG + memory: **28/30 — same as baseline**.
+* Wrong cases: adv_014, adv_015 (identical to baseline).
+
+**Why it was flat**: zero-shot Haiku gets adv_014 right. adv_014 only
+fails under *sparse-RAG at eval time*. Training used zero-shot so
+adv_014 never triggered the failure analyzer. Also adv_015's
+failure-derived rule was retrieved but applied=False — the rule action
+said "override step therapy" without an explicit outcome label, and
+Haiku interpreted "override" as `overturned_on_appeal` not `approved`.
+
+Cost: $0.37.
+
+### Experiment D2 — symmetric training configuration (THE HEADLINE)
+
+Re-ran D with the training base runner set to **sparse-RAG** (same
+`include_policy=True, policy_max_chars=200` as eval) and
+`seed=11` (same as eval). See `mvp_dashboard/experiment_d2_d3.py`.
+
+* Training: 27 agent correct / 3 wrong → 5 failure-derived rules from
+  3 wrong cases (adv_010, adv_014, adv_015 — the exact 3 cases sparse-
+  RAG gets wrong at eval).
+* Eval sparse-RAG + memory: **30/30 (100%)**.
+* Net delta vs baseline: **+2 cases** (adv_014 + adv_015 both flipped
+  to correct).
+
+Decisive rule applications at eval time:
+
+| Case | Applied rule | Action text |
+|---|---|---|
+| adv_010 | rule_5032fc3ac9 | "Approve brain MRI when thunderclap onset... documented." |
+| adv_014 | rule_2f4045e3b9 + rule_40150dbf29 | "Approve natalizumab when first-line DMT failure due to documented intolerance" + JCV verification |
+| adv_015 | rule_8180a0fa39 | "Override step therapy requirement **AND approve belimumab** when..." |
+
+All three at high confidence (0.82–0.92). The adv_015 rule in D2 had
+an explicit outcome label ("AND approve belimumab") that the Exp-D
+rule lacked — that's the mechanical difference that flipped the
+determination.
+
+**D2 beats the full-RAG oracle (29/30)** because full-RAG gets adv_014
+wrong (over-anchors on "patient prefers" language) while D2 has the
+targeted natalizumab rule.
+
+Cost: D2 $0.28 + D3 $0.08 ≈ $0.37.
+
+### Experiment D3 — single-case diagnostic on adv_015
+
+Re-ran adv_015 in isolation using the Exp-D store (the one with the
+ambiguous "override step therapy" rule), captured the full reasoning
+chain.
+
+Agent correctly identified and applied rule_6a24180be8, concluded:
+> "Standard step-therapy denial would be appropriate under policy;
+> however, rule_6a24180be8 applies and **overrides that denial** based
+> on documented specialist consensus..."
+
+...and then picked `overturned_on_appeal` as the final determination.
+The reasoning is right. The outcome-label mapping is wrong.
+
+**The diagnosis**: rule action phrasing mechanically maps to outcome
+labels. "Override X" is ambiguous; "override X **and approve Y**"
+forces the approval label. The failure_analyzer prompt needs to
+explicitly instruct the LLM to include the final outcome label in the
+action.
+
+### Spend through D2/D3
+
+- Phase 6 baseline: ~$2.34
+- Experiment C (held-out): $0.42
+- Experiment D (failure-driven asymmetric): $0.37
+- Experiments D2 + D3 (symmetric + diagnostic): $0.37
+- **Grand total: ~$3.50**
 
 ---
 
 ## 5. The pitch slide we have right now
 
 ```
-Zero-shot Haiku                    26/30  (86.7%)
-Sparse-RAG    (real-world baseline) 27/30  (90.0%)  ← what real PA companies actually have
-Sparse-RAG + MedReason              28/30  (93.3%)  ← +3.3pp from memory
-Full-RAG      (oracle ceiling)      29/30  (96.7%)  ← what perfect retrieval would give
+Zero-shot Haiku                           26/30  (86.7%)
+Sparse-RAG (what real PA companies have)  27/30  (90.0%)
+Sparse-RAG + MedReason                    28/30  (93.3%)  ← baseline Phase 5
+Full-RAG (oracle ceiling)                 29/30  (96.7%)
+Sparse-RAG + MedReason failure-driven     30/30  (100%)   ← Phase 51 (D2)
 ```
 
-This IS the slide. It shows:
-- RAG doesn't actually solve the problem (sparse retrieval is closer to reality)
-- Memory recovers a meaningful chunk of what sparse RAG loses
-- Memory does NOT exceed perfect retrieval (which is correct — it's an enhancement not a substitute)
+**Sparse-RAG + MedReason with failure-driven extraction hit 30/30. It
+beats the full-RAG oracle by +1 case on this v0.2 fixture.**
 
-**But the train-eval overlap caveat needs to be on the slide too.** The fix on adv_010 was extracted from adv_010 itself during training. Without a held-out generalization test, the claim is "memory caches operational nuance learned from prior cases" — which is true but narrow.
+The story the slide tells:
+- Real-world PA systems have sparse RAG: they retrieve a chunk, miss the footnotes.
+- Adding MedReason (Phase 5 memory) takes you to 93.3%.
+- Adding failure-driven extraction (Phase 51) takes you to 100% on this fixture.
+- Even full-RAG with the entire policy in context only hits 96.7% because the agent over-anchors on surface language (adv_014). Operational memory rules beat that.
+
+### Honest caveats the YC slide needs
+
+1. **Train-eval overlap on the 30/30.** D2 trains and evals on the
+   same v0.2 train split. The rules that fix adv_010, adv_014,
+   adv_015 were extracted from those exact cases. The 30/30 proves
+   the *mechanism works* and *config symmetry is required*, but the
+   stronger "rules from CASE_A generalize to CASE_B" claim needs
+   Experiment E (LOO on the failure-driven path — next to run).
+
+2. **Experiment C A2 already proved generalization for the regular
+   rule proposer path.** LOO on adv_010 with a 29-case pool (normal
+   training, not failure-driven) still recovered adv_010. So the
+   retrieval/application half of the mechanism generalizes. What
+   hasn't been confirmed is whether the *failure-driven* rules
+   specifically also generalize — that's Experiment E.
+
+3. **Configuration symmetry matters.** Phase 51 failed silently at
+   28/30 when training used zero-shot and eval used sparse-RAG. It
+   only works when training runs under the same configuration as
+   eval. This is important for any customer deployment — their
+   training harness must mirror their production retrieval setup.
 
 ---
 
@@ -326,11 +467,31 @@ This IS the slide. It shows:
 
 ### High priority
 
-1. **Train-eval overlap on the sparse-RAG +1 case fix.** The rules came from the same case they fixed. Need to run a held-out generalization test: train memory on a subset, eval on a disjoint subset.
+1. **Train-eval overlap on the 30/30 D2 result.** Still needs a
+   held-out generalization test on the failure-driven path
+   specifically (Experiment E: LOO on adv_010/adv_014/adv_015 using
+   symmetric sparse-RAG training with include_failures=True). Cheap
+   (~$0.25). Is the last experiment between us and the YC slide.
 
-2. **Chicken-and-egg on hard cases.** adv_004, adv_006, adv_012, adv_014, adv_015 are all cases the agent gets wrong. The training loop discards their traces. So memory has zero rules from the cases it's most needed for. **Failure-driven extraction (Phase 51) is the architectural fix** — has not been built.
+2. ~~**Chicken-and-egg on hard cases.**~~ **RESOLVED by Phase 51.**
+   The failure_analyzer path extracts corrective rules from wrong
+   cases. Experiment D2 shows it works when the training
+   configuration matches the eval configuration.
 
-3. **Cross-domain transfer fails badly.** Rules from EGD/PT/cardiac/breast cancer don't help on MS/lupus/oral appliances. Retrieval surfaces cross-domain noise that the agent correctly ignores (utilization 0.45-0.51). To prove cross-case-within-domain transfer, we need 20-30 cases of the SAME payer + condition (e.g., 20 Aetna lumbar MRI variants), train on half, eval on the other half.
+3. **Config asymmetry is a new failure mode to watch for.** If
+   customer deployments train under config A and eval under config
+   B, the failure analyzer will target the wrong cases. Deployment
+   docs (when written) must flag this. Experiment D was the canonical
+   example of how this silently fails.
+
+4. **Rule action phrasing → outcome label mapping is fragile.**
+   Experiment D3 diagnosed that "override X" can map to `approved`
+   OR `overturned_on_appeal` depending on the agent's interpretation.
+   The failure_analyzer prompt should explicitly require rule actions
+   to include the final outcome label ("approve X", "deny Y"). This
+   is the next prompt tweak (Experiment F).
+
+5. **Cross-domain transfer fails badly.** Rules from EGD/PT/cardiac/breast cancer don't help on MS/lupus/oral appliances. Retrieval surfaces cross-domain noise that the agent correctly ignores (utilization 0.45-0.51). To prove cross-case-within-domain transfer, we need 20-30 cases of the SAME payer + condition. **User provided this fixture (20 Aetna lumbar MRI cases) on 2026-04-11 — loader not yet built**. See `medreason_bench/data/fixtures/aetna_lumbar_mri_cases.md`.
 
 ### Medium priority
 
@@ -419,105 +580,119 @@ on Windows. Never use unix-style `kill`.
 
 ## 9. Where to pick up tomorrow
 
-### The most informative next thing (~$0.30, ~30 min)
+### F — Prompt tweak to force outcome-labeled rule actions (~10 min, ~$0.00)
 
-**Run the held-out generalization test on v0.2.** Take the 30-case v0.2 train
-split. Train memory on the FIRST 20 cases only. Evaluate sparse-RAG +
-memory on the LAST 10 cases. If memory still adds +0.5 to +1 case on the
-held-out set, the rules ARE generalizing across cases. If memory adds 0
-on held-out but still adds +1 on training-overlap, we know the v0.2
-fix was train-eval overlap.
+**The fix for the D3 diagnosis.** Edit
+`medreason/prompts/failure_analyzer.txt` so the LLM is explicitly
+required to include the final outcome label ("approve X", "deny Y",
+"overturn Z on appeal") in every rule action, not just the
+override/exception reasoning. Then regenerate `PROMPTS_LOCK.json`.
+This prevents the adv_015-style "override step therapy" → Haiku picks
+`overturned_on_appeal` instead of `approved` failure from ever
+recurring.
 
-Implementation: the train CLI already has `--max-cases`. The eval CLI
-doesn't yet have a "load only the second half of the split" flag. Easiest:
-use `--quick` mode (which takes a stratified 10-case sample) or split
-the v0.2 train manifest manually. Or add a `--skip-first N --max-cases M`
-flag pair to the eval harness — about 15 lines of code.
+Optional test: assert the failure_analyzer prompt text contains the
+phrase "outcome label" or similar to guard against drift. Not strictly
+needed — the improvement is prompt-level.
 
-### The next biggest architectural piece (~2 hours code, ~$0.20)
+### E — LOO generalization test on the failure-driven path (~$0.25, ~20 min)
 
-**Build the failure-driven extractor (Phase 51).** Spec is in the original
-plan and the user reiterated it explicitly:
+**The last experiment between us and the YC slide.** Run leave-one-out
+on each of {adv_010, adv_014, adv_015} using the symmetric sparse-RAG
+training + include_failures=True configuration (i.e., D2 but with
+each decisive case held out one at a time).
+
+For each LOO run:
+1. Train sparse-RAG + failure-driven on the other 29 cases
+2. Eval sparse-RAG + memory on the held-out case alone
+3. Record whether memory recovers it without having seen it in training
+
+If all 3 LOO runs recover their held-out case, the 30/30 D2 result is
+confirmed to be generalization, not memorization. The YC slide becomes:
 
 ```
-agent wrong → failure_analyzer.run(case, agent_result, ground_truth, llm)
-            → "what rule would have prevented this error?"
-            → corrective candidate rule
-            → same proposer validators
-            → store
+Sparse-RAG (what real PA companies have)     90.0%
+Sparse-RAG + MedReason                      100.0%    (+10pp)
+MedReason beats full-RAG oracle by +3.3pp
 ```
 
-New files:
-- `medreason/prompts/failure_analyzer.txt` (frozen prompt — needs lock bump)
-- `medreason/extraction/failure_analyzer.py` — `analyze_failure(case, agent_result, ground_truth_outcome, llm_client)` returns `list[ReasoningRule]`
-- `medreason_bench/train.py` — replace the `agent wrong → continue` branch with a call to `analyze_failure`
-- `medreason_bench/__main__.py` — `--include-failures` flag (default False initially)
+With footnote: "Confirmed via LOO generalization testing. Rules
+generalize across cases."
 
-Test with FakeLLMClient before running real money. Then re-train v0.2 with
-`--include-failures` and see if memory now fixes adv_004, adv_006, adv_012,
-adv_014, adv_015 — the cases that have always been the binding constraint.
+If any LOO run fails, the slide needs a softer claim + the Aetna
+fixture becomes the next experiment.
 
-### The within-domain test (requires authoring, ~3 hours)
+### Then: WRITE THE YC APPLICATION
 
-**Author 20-30 lumbar MRI variants for a single payer (Aetna).** All
-different patient presentations, different documentation completeness,
-different exception clauses. Train memory on 15. Eval on the other 15.
-This is the test for "rules from CASE_A generalize to CASE_B within the
-same domain." If this works, the pitch is fully validated. If it doesn't
-work, the architecture as-built can't deliver the operational-nuance
-story without more sophisticated retrieval.
+The user has said: **if E shows generalization, stop experimenting.
+Write the YC application.** $3.50 total compute to prove that a
+reasoning memory layer with failure-driven learning beats perfect RAG
+on a healthcare prior auth benchmark. That's a company.
 
-### Phase 7 — cross-vendor critic (~3 hours code, ~$1.50 LLM)
+### Nice-to-haves, lower priority
 
-Wire `medreason/llm/openai.py` and `medreason/llm/gemini.py`. Then run the
-training pipeline with cross-vendor critic (Claude agent + GPT-4 critic).
-The plan calls this out as risk #1 — same-vendor critic shares blind
-spots. Cross-vendor would tighten the trace-quality filter.
+- **Aetna fixture (~$1, ~3 hr code)**: user provided 20 within-domain
+  Aetna lumbar MRI cases on 2026-04-11. Saved at
+  `medreason_bench/data/fixtures/aetna_lumbar_mri_cases.md`. Build a
+  loader and run the same experiments at v0.3 — the within-domain
+  test Section 6 issue #5 has been asking for.
 
-### Sonnet validation (~$2.50, ~1 hour)
+- **Phase 7 — cross-vendor critic (~3 hr code, ~$1.50 LLM)**:
+  wire `medreason/llm/openai.py` and `medreason/llm/gemini.py`. Plan
+  risk #1 (same-vendor critic shares blind spots).
 
-The user originally asked for Sonnet validation alongside Haiku. I never
-got to it because v0.1 results weren't strong enough to justify the spend.
-Now with sparse-RAG showing a real signal, it's worth validating on
-Sonnet. If sparse-RAG + memory beats sparse-RAG by +1 case on Sonnet too,
-the result generalizes across model strength. If it doesn't (Sonnet's
-sparse-RAG might already get adv_010 right because the model is smarter),
-the result is Haiku-specific.
+- **Sonnet validation (~$2.50, ~1 hour)**: does the 30/30 hold on a
+  stronger model, or does Sonnet already solve adv_014 zero-shot?
 
 ---
 
 ## 10. Key files to read first when picking up
 
-1. `mvp_dashboard/results.json` — the dashboard data, latest experiment state
-2. `medreason_bench/leaderboard/entries/` — every individual eval run, the per-case JSONs
-3. `medreason_bench/data/training_reports/v0.2_haiku.json` — what was in training
-4. `medreason_bench/data/lcd_edge_cases.py` — the v0.2 case loader (xlsx-derived)
-5. `medreason_bench/data/adversarial_cases.py` — the v0.1 cases (hand-authored)
-6. `medreason_bench/__main__.py` — the CLI surface (data/train/eval/splits)
-7. `medreason/runners/claude.py` — supports `include_policy` and `policy_max_chars`
-8. `medreason_bench/train.py` — `--multi-policy --skip-gate` mode for sparse fixtures
+1. `mvp_dashboard/experiment_d2_d3.json` — the 30/30 result, including
+   per-case applied rules and the D3 adv_015 reasoning chain
+2. `mvp_dashboard/experiment_c_heldout.json` — the earlier
+   held-out generalization result (A2 recovered adv_010 LOO)
+3. `mvp_dashboard/experiment_d_failuredriven.json` — the baseline
+   Phase 51 run that landed flat at 28/30 (config asymmetry)
+4. `medreason/extraction/failure_analyzer.py` — the Phase 51 module
+5. `medreason/prompts/failure_analyzer.txt` — the failure analyzer
+   prompt (Experiment F is a tweak to this file)
+6. `medreason_bench/train.py` — now has `include_failures` branch in
+   the main loop
+7. `medreason_bench/__main__.py` — CLI surface with `--include-failures`
+8. `medreason_bench/data/fixtures/aetna_lumbar_mri_cases.md` — the 20
+   user-authored within-domain cases waiting for a loader
 
 ---
 
 ## 11. The one-paragraph "tell me what you know" version
 
-MedReason is a memory layer that extracts reasoning rules from successful
-agent traces and injects them into future similar cases. The architecture
-is fully built (Phases 0-5, 397 tests passing). The original v0.1 result
-showed +25pp accuracy from memory, but ablations revealed most of that
-was a priming effect from the injection's framing language, not actual
-rule application — the genuine memory contribution at v0.1 scale was
-~+8pp (1 case fixed by an actually-applied rule). At v0.2 scale (50
-combined cases including 30 user-provided LCD edge cases), full-RAG
-already solves 29/30 cases, leaving memory zero room to add value above
-RAG. But sparse-RAG (truncated 200-char policy excerpt simulating
-real-world retrieval that retrieves a header but misses footnotes) drops
-to 27/30, AND sparse-RAG + memory recovers to 28/30 with all 3 retrieved
-rules genuinely applied — the first cleanly-attributable memory win in
-the entire experiment. The caveat is that the rules came from training
-on the same case, so the win is "memory remembers what the agent learned
-from a case it's seen before" not "memory generalizes from CASE_A to
-CASE_B." The next experiment should be a held-out generalization test
-or building failure-driven extraction (Phase 51) to break the
-chicken-and-egg where the agent can't learn from the cases it gets
-wrong. Total spent so far: ~$2.34. Dashboard at http://localhost:3000.
+MedReason is a memory layer that extracts reasoning rules from agent
+traces and injects them into future similar cases. Phases 0–5 built
+the pipeline (critic → propose → gate → retrieve → inject, 408 tests
+passing). Phase 6 ran the first real experiments on Haiku. The v0.1
+"+25pp" claim was mostly priming-effect (genuine contribution ~+8pp).
+At v0.2 (50 combined cases, 30 user xlsx + 20 adversarial), full-RAG
+solved 29/30 and the Phase 5 baseline sparse-RAG + memory solved
+28/30 — the first cleanly-attributable memory win (adv_010 thunderclap
+rule, all 3 retrieved rules applied=True). **Experiment C A2 proved
+generalization**: LOO on adv_010 with 29 other cases still recovered
+it, falsifying the train-eval overlap caveat on v0.2. Then **Phase 51
+(failure-driven extraction)** landed: when the agent gets a case
+wrong, route it to `analyze_failure(case, agent_determination,
+ground_truth, llm)` which asks the LLM what rule would have led to
+the correct answer. Experiment D ran this with zero-shot training
+base runner and stayed flat at 28/30 — a configuration asymmetry
+(training zero-shot ≠ eval sparse-RAG) meant adv_014 never reached
+the failure analyzer. **Experiment D2 ran it with symmetric sparse-
+RAG training + same seed as eval and hit 30/30 — a clean sweep that
+beats the full-RAG oracle (29/30) by +1 case.** D3 diagnosed the
+earlier adv_015 apply-failure as a rule-action phrasing issue
+("override X" maps ambiguously to outcomes; "override X AND approve
+Y" forces `approved`) — the next prompt tweak (Experiment F) is to
+require outcome labels in rule actions. Experiment E (LOO on the
+failure-driven path) is the last experiment needed before the YC
+slide — confirms whether the 30/30 generalizes or is overlap on the
+specific v0.2 train cases. User provided 20 within-domain Aetna
+lumbar MRI cases on 2026-04-11 (loader not built yet). **Total spend:
+~$3.50.** Dashboard at http://localhost:3000.

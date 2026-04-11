@@ -1,0 +1,967 @@
+{
+  "comparison": {
+    "baseline_v0_2_sparse_rag_plus_memory_accuracy": "28/30",
+    "baseline_wrong_cases": [
+      "adv_014",
+      "adv_015"
+    ],
+    "experiment_d_wrong_cases": [
+      "adv_014",
+      "adv_015"
+    ],
+    "net_case_delta": 0,
+    "newly_right_cases": [],
+    "newly_wrong_cases": []
+  },
+  "elapsed_seconds": 619.5,
+  "eval_seed": 11,
+  "experiment": "D_failure_driven_extraction",
+  "policy_max_chars": 200,
+  "sparse_rag_plus_memory": {
+    "accuracy": 0.9333333333333333,
+    "cost_usd": 0.17407,
+    "n_cases": 30,
+    "n_correct": 28,
+    "results": [
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_68c7df1492"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_496fe5a34b"
+          }
+        ],
+        "case_id": "adv_002",
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.00379,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 1007,
+        "output_tokens": 556,
+        "retrieved_rule_ids": [
+          "rule_68c7df1492",
+          "rule_496fe5a34b"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_76e4750132"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_fc28715772"
+          }
+        ],
+        "case_id": "adv_003",
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.00419,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 963,
+        "output_tokens": 645,
+        "retrieved_rule_ids": [
+          "rule_76e4750132",
+          "rule_fc28715772"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_b9c26e7d1f"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_9608a5cebb"
+          }
+        ],
+        "case_id": "adv_004",
+        "confidence": 0.94,
+        "correct": true,
+        "cost_usd": 0.00472,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 976,
+        "output_tokens": 749,
+        "retrieved_rule_ids": [
+          "rule_b9c26e7d1f",
+          "rule_9608a5cebb"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_48e422462b"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_5ff62f8055"
+          }
+        ],
+        "case_id": "adv_005",
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.00442,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 973,
+        "output_tokens": 689,
+        "retrieved_rule_ids": [
+          "rule_48e422462b",
+          "rule_5ff62f8055"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_a5e1c7b413"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_d50b4d6c18"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_19416a9b52"
+          }
+        ],
+        "case_id": "adv_006",
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.00827,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 2089,
+        "output_tokens": 1237,
+        "retrieved_rule_ids": [
+          "rule_a5e1c7b413",
+          "rule_d50b4d6c18",
+          "rule_19416a9b52"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_c13fcc69b3"
+          }
+        ],
+        "case_id": "adv_007",
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.00379,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 908,
+        "output_tokens": 576,
+        "retrieved_rule_ids": [
+          "rule_c13fcc69b3"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_190608b843"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_a5e1c7b413"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_73b74e51b6"
+          }
+        ],
+        "case_id": "adv_009",
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.00402,
+        "determination": "approved",
+        "ground_truth": "approved",
+        "input_tokens": 998,
+        "output_tokens": 605,
+        "retrieved_rule_ids": [
+          "rule_190608b843",
+          "rule_a5e1c7b413",
+          "rule_73b74e51b6"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_a74d14f5e1"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_6ea5c5fc52"
+          }
+        ],
+        "case_id": "adv_010",
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.0044,
+        "determination": "approved",
+        "ground_truth": "approved",
+        "input_tokens": 997,
+        "output_tokens": 680,
+        "retrieved_rule_ids": [
+          "rule_a74d14f5e1",
+          "rule_6ea5c5fc52"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_03ab60bdb6"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_cf10c6b13e"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_afff95818d"
+          }
+        ],
+        "case_id": "adv_011",
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.00462,
+        "determination": "approved",
+        "ground_truth": "approved",
+        "input_tokens": 988,
+        "output_tokens": 727,
+        "retrieved_rule_ids": [
+          "rule_03ab60bdb6",
+          "rule_cf10c6b13e",
+          "rule_afff95818d"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_6f90f48b15"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_e47545e07c"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_6a24180be8"
+          }
+        ],
+        "case_id": "adv_014",
+        "confidence": 0.72,
+        "correct": false,
+        "cost_usd": 0.00976,
+        "determination": "denied",
+        "ground_truth": "approved",
+        "input_tokens": 2126,
+        "output_tokens": 1526,
+        "retrieved_rule_ids": [
+          "rule_6f90f48b15",
+          "rule_e47545e07c",
+          "rule_6a24180be8"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_6a24180be8"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_e79650e406"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_5ea1604961"
+          }
+        ],
+        "case_id": "adv_015",
+        "confidence": 0.72,
+        "correct": false,
+        "cost_usd": 0.01024,
+        "determination": "overturned_on_appeal",
+        "ground_truth": "approved",
+        "input_tokens": 2097,
+        "output_tokens": 1629,
+        "retrieved_rule_ids": [
+          "rule_6a24180be8",
+          "rule_e79650e406",
+          "rule_5ea1604961"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_cccffe3465"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_6f90f48b15"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_e47545e07c"
+          }
+        ],
+        "case_id": "adv_017",
+        "confidence": 0.82,
+        "correct": true,
+        "cost_usd": 0.0057,
+        "determination": "overturned_on_appeal",
+        "ground_truth": "overturned_on_appeal",
+        "input_tokens": 1048,
+        "output_tokens": 930,
+        "retrieved_rule_ids": [
+          "rule_cccffe3465",
+          "rule_6f90f48b15",
+          "rule_e47545e07c"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_ab5d1e34f6"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_d7d7f05efd"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_6f90f48b15"
+          }
+        ],
+        "case_id": "adv_019",
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.0053,
+        "determination": "overturned_on_appeal",
+        "ground_truth": "overturned_on_appeal",
+        "input_tokens": 1089,
+        "output_tokens": 843,
+        "retrieved_rule_ids": [
+          "rule_ab5d1e34f6",
+          "rule_d7d7f05efd",
+          "rule_6f90f48b15"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_447afc3a97"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_e79650e406"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_cc9901e4ff"
+          }
+        ],
+        "case_id": "adv_020",
+        "confidence": 0.88,
+        "correct": true,
+        "cost_usd": 0.00925,
+        "determination": "overturned_on_appeal",
+        "ground_truth": "overturned_on_appeal",
+        "input_tokens": 2090,
+        "output_tokens": 1432,
+        "retrieved_rule_ids": [
+          "rule_447afc3a97",
+          "rule_e79650e406",
+          "rule_cc9901e4ff"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_d6186985c7"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_56afe561b3"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_c8b9524b1a"
+          }
+        ],
+        "case_id": "lcd_002",
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.00851,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 1991,
+        "output_tokens": 1303,
+        "retrieved_rule_ids": [
+          "rule_d6186985c7",
+          "rule_56afe561b3",
+          "rule_c8b9524b1a"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_ecff42f222"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_b4328d2e07"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_7b3e2b0266"
+          }
+        ],
+        "case_id": "lcd_003",
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.00452,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 958,
+        "output_tokens": 712,
+        "retrieved_rule_ids": [
+          "rule_ecff42f222",
+          "rule_b4328d2e07",
+          "rule_7b3e2b0266"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_cc9901e4ff"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_e79650e406"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_dabcf21032"
+          }
+        ],
+        "case_id": "lcd_004",
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.00379,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 941,
+        "output_tokens": 570,
+        "retrieved_rule_ids": [
+          "rule_cc9901e4ff",
+          "rule_e79650e406",
+          "rule_dabcf21032"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_56afe561b3"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_bf1533d116"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_5ea1604961"
+          }
+        ],
+        "case_id": "lcd_009",
+        "confidence": 0.99,
+        "correct": true,
+        "cost_usd": 0.00425,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 943,
+        "output_tokens": 662,
+        "retrieved_rule_ids": [
+          "rule_56afe561b3",
+          "rule_bf1533d116",
+          "rule_5ea1604961"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_e79650e406"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_dabcf21032"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_5ea1604961"
+          }
+        ],
+        "case_id": "lcd_010",
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.00396,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 945,
+        "output_tokens": 602,
+        "retrieved_rule_ids": [
+          "rule_e79650e406",
+          "rule_dabcf21032",
+          "rule_5ea1604961"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_c8b9524b1a"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_9e0288a8ec"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_b4328d2e07"
+          }
+        ],
+        "case_id": "lcd_011",
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.00672,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 2015,
+        "output_tokens": 941,
+        "retrieved_rule_ids": [
+          "rule_c8b9524b1a",
+          "rule_9e0288a8ec",
+          "rule_b4328d2e07"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_2fc153e9d5"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_cc9901e4ff"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_e79650e406"
+          }
+        ],
+        "case_id": "lcd_015",
+        "confidence": 0.99,
+        "correct": true,
+        "cost_usd": 0.00326,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 913,
+        "output_tokens": 469,
+        "retrieved_rule_ids": [
+          "rule_2fc153e9d5",
+          "rule_cc9901e4ff",
+          "rule_e79650e406"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_3e599827d2"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_0bb9f2ba77"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_94996b9e2b"
+          }
+        ],
+        "case_id": "lcd_019",
+        "confidence": 0.98,
+        "correct": true,
+        "cost_usd": 0.0045,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 955,
+        "output_tokens": 709,
+        "retrieved_rule_ids": [
+          "rule_3e599827d2",
+          "rule_0bb9f2ba77",
+          "rule_94996b9e2b"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_19dcf1997c"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_5d329df20e"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_cc9901e4ff"
+          }
+        ],
+        "case_id": "lcd_020",
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.00449,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 947,
+        "output_tokens": 708,
+        "retrieved_rule_ids": [
+          "rule_19dcf1997c",
+          "rule_5d329df20e",
+          "rule_cc9901e4ff"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_9e0288a8ec"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_b4328d2e07"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_19416a9b52"
+          }
+        ],
+        "case_id": "lcd_021",
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.00746,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 2019,
+        "output_tokens": 1088,
+        "retrieved_rule_ids": [
+          "rule_9e0288a8ec",
+          "rule_b4328d2e07",
+          "rule_19416a9b52"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_447afc3a97"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_b2c074d28a"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_cc9901e4ff"
+          }
+        ],
+        "case_id": "lcd_024",
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.00996,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 2028,
+        "output_tokens": 1586,
+        "retrieved_rule_ids": [
+          "rule_447afc3a97",
+          "rule_b2c074d28a",
+          "rule_cc9901e4ff"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_447afc3a97"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_b4328d2e07"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_7b3e2b0266"
+          }
+        ],
+        "case_id": "lcd_025",
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.00409,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 951,
+        "output_tokens": 627,
+        "retrieved_rule_ids": [
+          "rule_447afc3a97",
+          "rule_b4328d2e07",
+          "rule_7b3e2b0266"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_a2c9dae6d8"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_f9c94278de"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_5ea1604961"
+          }
+        ],
+        "case_id": "lcd_026",
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.00795,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 1895,
+        "output_tokens": 1211,
+        "retrieved_rule_ids": [
+          "rule_a2c9dae6d8",
+          "rule_f9c94278de",
+          "rule_5ea1604961"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_5ea1604961"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_b4328d2e07"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_a5e1c7b413"
+          }
+        ],
+        "case_id": "lcd_027",
+        "confidence": 0.78,
+        "correct": true,
+        "cost_usd": 0.00395,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 928,
+        "output_tokens": 605,
+        "retrieved_rule_ids": [
+          "rule_5ea1604961",
+          "rule_b4328d2e07",
+          "rule_a5e1c7b413"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_56afe561b3"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_bf1533d116"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_d6186985c7"
+          }
+        ],
+        "case_id": "lcd_028",
+        "confidence": 0.78,
+        "correct": true,
+        "cost_usd": 0.01004,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 2044,
+        "output_tokens": 1599,
+        "retrieved_rule_ids": [
+          "rule_56afe561b3",
+          "rule_bf1533d116",
+          "rule_d6186985c7"
+        ]
+      },
+      {
+        "applied_rules": [
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_01c2005632"
+          },
+          {
+            "applied": false,
+            "rationale": "",
+            "rule_id": "rule_19416a9b52"
+          },
+          {
+            "applied": true,
+            "rationale": "",
+            "rule_id": "rule_a5e1c7b413"
+          }
+        ],
+        "case_id": "lcd_030",
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.00417,
+        "determination": "denied",
+        "ground_truth": "denied",
+        "input_tokens": 942,
+        "output_tokens": 645,
+        "retrieved_rule_ids": [
+          "rule_01c2005632",
+          "rule_19416a9b52",
+          "rule_a5e1c7b413"
+        ]
+      }
+    ]
+  },
+  "split": "train",
+  "store_path": "C:\\Users\\krish\\OneDrive\\Documents\\Veridicus\\medreason_bench\\data\\stores\\v0.2_failuredriven.db",
+  "total_cost_usd": 0.36916,
+  "train": {
+    "cost_agent": 0.09789,
+    "cost_critic": 0.0468,
+    "cost_failure_analyzer": 0.0072,
+    "cost_proposer": 0.0432,
+    "cost_total": 0.19509,
+    "elapsed_seconds": 363.8,
+    "n_agent_correct": 26,
+    "n_agent_wrong": 4,
+    "n_failure_analyzer_invoked": 4,
+    "n_failure_rules_promoted": 6,
+    "n_failure_rules_proposed": 6,
+    "n_failure_rules_rejected": 0,
+    "n_rules_promoted_normal": 70,
+    "n_train_cases": 30
+  },
+  "train_seed": 42,
+  "version": "v0.2"
+}

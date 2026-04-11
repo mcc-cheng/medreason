@@ -245,6 +245,7 @@ def _cmd_train(args: argparse.Namespace) -> int:
         embedder=FakeEmbedder(),
         progress_hook=lambda msg: print(msg),
         seed=args.seed,
+        include_failures=args.include_failures,
     )
 
     report = run_training(config)
@@ -263,10 +264,18 @@ def _cmd_train(args: argparse.Namespace) -> int:
     print(f"  rules PROMOTED (ACTIVE) : {report.n_rules_promoted}")
     print(f"  rules deprecated        : {report.n_rules_deprecated}")
     print(f"  rules deferred          : {report.n_rules_deferred}")
+    if args.include_failures:
+        print()
+        print(f"  agent wrong (seen)      : {report.n_agent_wrong}")
+        print(f"  failure analyzer runs   : {report.n_failure_analyzer_invoked}")
+        print(f"  failure rules proposed  : {report.n_failure_rules_proposed}")
+        print(f"  failure rules rejected  : {report.n_failure_rules_rejected}")
+        print(f"  failure rules PROMOTED  : {report.n_failure_rules_promoted}")
     print()
-    print(f"  cost (agent/critic/proposer/gate): "
+    print(f"  cost (agent/critic/proposer/gate/failure): "
           f"${report.cost_agent:.4f} / ${report.cost_critic:.4f} / "
-          f"${report.cost_proposer:.4f} / ${report.cost_gate:.4f}")
+          f"${report.cost_proposer:.4f} / ${report.cost_gate:.4f} / "
+          f"${report.cost_failure_analyzer:.4f}")
     print(f"  TOTAL COST              : ${report.cost_total:.4f}")
     print(f"  elapsed                 : {report.elapsed_seconds:.1f}s")
 
@@ -543,6 +552,13 @@ def _build_parser() -> argparse.ArgumentParser:
     train_p.add_argument(
         "--append", action="store_true",
         help="Append to an existing store instead of overwriting",
+    )
+    train_p.add_argument(
+        "--include-failures", action="store_true",
+        help="Phase 51: route wrong-answer cases through the failure "
+             "analyzer instead of discarding them. Extracts corrective "
+             "rules from the cases the agent couldn't solve, breaking "
+             "the chicken-and-egg where hard cases never produced a rule.",
     )
     train_p.set_defaults(func=_cmd_train)
 

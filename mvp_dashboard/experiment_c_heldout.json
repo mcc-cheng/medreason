@@ -1,0 +1,565 @@
+{
+  "A1_stratified_20_10": {
+    "holdout_case_ids": [
+      "adv_007",
+      "adv_010",
+      "adv_014",
+      "adv_017",
+      "lcd_002",
+      "lcd_009",
+      "lcd_015",
+      "lcd_024",
+      "lcd_027",
+      "lcd_028"
+    ],
+    "interpretation": "Compare sparse_rag accuracy vs sparse_rag_plus_memory accuracy on the held-out 10. A delta > 0 means memory generalizes; delta == 0 means memory adds no value above RAG on truly unseen cases; delta < 0 means memory hurts.",
+    "sparse_rag": {
+      "accuracy": 0.8,
+      "cost_usd": 0.03145,
+      "mode": "sparse_rag_no_memory",
+      "n_cases": 10,
+      "n_correct": 8,
+      "results": [
+        {
+          "case_id": "adv_007",
+          "confidence": 0.89,
+          "correct": true,
+          "cost_usd": 0.00287,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 765,
+          "output_tokens": 421
+        },
+        {
+          "case_id": "adv_010",
+          "confidence": 0.72,
+          "correct": false,
+          "cost_usd": 0.00355,
+          "determination": "denied",
+          "ground_truth": "approved",
+          "input_tokens": 799,
+          "output_tokens": 551
+        },
+        {
+          "case_id": "adv_014",
+          "confidence": 0.72,
+          "correct": false,
+          "cost_usd": 0.00395,
+          "determination": "denied",
+          "ground_truth": "approved",
+          "input_tokens": 813,
+          "output_tokens": 628
+        },
+        {
+          "case_id": "adv_017",
+          "confidence": 0.72,
+          "correct": true,
+          "cost_usd": 0.00352,
+          "determination": "overturned_on_appeal",
+          "ground_truth": "overturned_on_appeal",
+          "input_tokens": 821,
+          "output_tokens": 539
+        },
+        {
+          "case_id": "lcd_002",
+          "confidence": 0.95,
+          "correct": true,
+          "cost_usd": 0.00246,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 746,
+          "output_tokens": 343
+        },
+        {
+          "case_id": "lcd_009",
+          "confidence": 0.98,
+          "correct": true,
+          "cost_usd": 0.00279,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 740,
+          "output_tokens": 410
+        },
+        {
+          "case_id": "lcd_015",
+          "confidence": 0.92,
+          "correct": true,
+          "cost_usd": 0.00252,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 707,
+          "output_tokens": 363
+        },
+        {
+          "case_id": "lcd_024",
+          "confidence": 0.95,
+          "correct": true,
+          "cost_usd": 0.00344,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 759,
+          "output_tokens": 537
+        },
+        {
+          "case_id": "lcd_027",
+          "confidence": 0.78,
+          "correct": true,
+          "cost_usd": 0.00309,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 725,
+          "output_tokens": 472
+        },
+        {
+          "case_id": "lcd_028",
+          "confidence": 0.72,
+          "correct": true,
+          "cost_usd": 0.00326,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 776,
+          "output_tokens": 496
+        }
+      ]
+    },
+    "sparse_rag_plus_memory": {
+      "accuracy": 0.8,
+      "cost_usd": 0.06634,
+      "mode": "sparse_rag_plus_memory",
+      "n_cases": 10,
+      "n_correct": 8,
+      "results": [
+        {
+          "applied_rules": [
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_35d45d8f23"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_0475bb7b50"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_a24635e88b"
+            }
+          ],
+          "case_id": "adv_007",
+          "confidence": 0.92,
+          "correct": true,
+          "cost_usd": 0.00693,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 2018,
+          "output_tokens": 983,
+          "retrieved_rule_ids": [
+            "rule_35d45d8f23",
+            "rule_0475bb7b50",
+            "rule_a24635e88b"
+          ]
+        },
+        {
+          "applied_rules": [
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_03866c3d42"
+            },
+            {
+              "applied": true,
+              "rationale": "",
+              "rule_id": "rule_3766d2e13c"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_a24635e88b"
+            }
+          ],
+          "case_id": "adv_010",
+          "confidence": 0.78,
+          "correct": false,
+          "cost_usd": 0.00895,
+          "determination": "denied",
+          "ground_truth": "approved",
+          "input_tokens": 2100,
+          "output_tokens": 1370,
+          "retrieved_rule_ids": [
+            "rule_03866c3d42",
+            "rule_3766d2e13c",
+            "rule_a24635e88b"
+          ]
+        },
+        {
+          "applied_rules": [
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_f5bcf5200a"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_a24635e88b"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_9cd01f31dd"
+            }
+          ],
+          "case_id": "adv_014",
+          "confidence": 0.42,
+          "correct": false,
+          "cost_usd": 0.01003,
+          "determination": "denied",
+          "ground_truth": "approved",
+          "input_tokens": 2120,
+          "output_tokens": 1582,
+          "retrieved_rule_ids": [
+            "rule_f5bcf5200a",
+            "rule_a24635e88b",
+            "rule_9cd01f31dd"
+          ]
+        },
+        {
+          "applied_rules": [
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_e1a4be7023"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_03866c3d42"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_f94b31fcae"
+            }
+          ],
+          "case_id": "adv_017",
+          "confidence": 0.72,
+          "correct": true,
+          "cost_usd": 0.0086,
+          "determination": "overturned_on_appeal",
+          "ground_truth": "overturned_on_appeal",
+          "input_tokens": 2112,
+          "output_tokens": 1297,
+          "retrieved_rule_ids": [
+            "rule_e1a4be7023",
+            "rule_03866c3d42",
+            "rule_f94b31fcae"
+          ]
+        },
+        {
+          "applied_rules": [
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_e5985daefb"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_8745f354af"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_2699701fb7"
+            }
+          ],
+          "case_id": "lcd_002",
+          "confidence": 0.98,
+          "correct": true,
+          "cost_usd": 0.00341,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 971,
+          "output_tokens": 487,
+          "retrieved_rule_ids": [
+            "rule_e5985daefb",
+            "rule_8745f354af",
+            "rule_2699701fb7"
+          ]
+        },
+        {
+          "applied_rules": [
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_0475bb7b50"
+            },
+            {
+              "applied": true,
+              "rationale": "",
+              "rule_id": "rule_e5985daefb"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_c83d81d449"
+            }
+          ],
+          "case_id": "lcd_009",
+          "confidence": 0.98,
+          "correct": true,
+          "cost_usd": 0.00474,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 946,
+          "output_tokens": 759,
+          "retrieved_rule_ids": [
+            "rule_0475bb7b50",
+            "rule_e5985daefb",
+            "rule_c83d81d449"
+          ]
+        },
+        {
+          "applied_rules": [
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_c83d81d449"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_ad2c0fdd99"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_8ace141deb"
+            }
+          ],
+          "case_id": "lcd_015",
+          "confidence": 0.92,
+          "correct": true,
+          "cost_usd": 0.00335,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 914,
+          "output_tokens": 487,
+          "retrieved_rule_ids": [
+            "rule_c83d81d449",
+            "rule_ad2c0fdd99",
+            "rule_8ace141deb"
+          ]
+        },
+        {
+          "applied_rules": [
+            {
+              "applied": true,
+              "rationale": "",
+              "rule_id": "rule_c83d81d449"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_6c693b0ff1"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_8745f354af"
+            }
+          ],
+          "case_id": "lcd_024",
+          "confidence": 0.95,
+          "correct": true,
+          "cost_usd": 0.00754,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 2019,
+          "output_tokens": 1104,
+          "retrieved_rule_ids": [
+            "rule_c83d81d449",
+            "rule_6c693b0ff1",
+            "rule_8745f354af"
+          ]
+        },
+        {
+          "applied_rules": [
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_03866c3d42"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_0475bb7b50"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_e1a4be7023"
+            }
+          ],
+          "case_id": "lcd_027",
+          "confidence": 0.92,
+          "correct": true,
+          "cost_usd": 0.00783,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 1918,
+          "output_tokens": 1183,
+          "retrieved_rule_ids": [
+            "rule_03866c3d42",
+            "rule_0475bb7b50",
+            "rule_e1a4be7023"
+          ]
+        },
+        {
+          "applied_rules": [
+            {
+              "applied": true,
+              "rationale": "",
+              "rule_id": "rule_c83d81d449"
+            },
+            {
+              "applied": true,
+              "rationale": "",
+              "rule_id": "rule_2699701fb7"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_03866c3d42"
+            }
+          ],
+          "case_id": "lcd_028",
+          "confidence": 0.78,
+          "correct": true,
+          "cost_usd": 0.00496,
+          "determination": "denied",
+          "ground_truth": "denied",
+          "input_tokens": 977,
+          "output_tokens": 797,
+          "retrieved_rule_ids": [
+            "rule_c83d81d449",
+            "rule_2699701fb7",
+            "rule_03866c3d42"
+          ]
+        }
+      ]
+    },
+    "train": {
+      "cost_train": 0.12655,
+      "elapsed_seconds": 240.1,
+      "label": "A1-strat20",
+      "n_agent_correct": 17,
+      "n_critic_agreed": 17,
+      "n_rules_promoted": 49,
+      "n_train_cases": 20
+    },
+    "train_case_ids": [
+      "adv_002",
+      "adv_003",
+      "adv_004",
+      "adv_005",
+      "adv_006",
+      "adv_009",
+      "adv_011",
+      "adv_015",
+      "adv_019",
+      "adv_020",
+      "lcd_003",
+      "lcd_004",
+      "lcd_010",
+      "lcd_011",
+      "lcd_019",
+      "lcd_020",
+      "lcd_021",
+      "lcd_025",
+      "lcd_026",
+      "lcd_030"
+    ]
+  },
+  "A2_loo_adv_010": {
+    "interpretation": "If sparse-RAG+memory still gets adv_010 right after LOO, the v0.2 fix generalized from rules learned on OTHER cases. If sparse-RAG+memory now matches plain sparse-RAG (both wrong or both right), the v0.2 fix was train-eval overlap on the same case.",
+    "sparse_rag": {
+      "accuracy": 0.0,
+      "cost_usd": 0.00361,
+      "mode": "sparse_rag_no_memory",
+      "n_cases": 1,
+      "n_correct": 0,
+      "results": [
+        {
+          "case_id": "adv_010",
+          "confidence": 0.72,
+          "correct": false,
+          "cost_usd": 0.00361,
+          "determination": "denied",
+          "ground_truth": "approved",
+          "input_tokens": 799,
+          "output_tokens": 563
+        }
+      ]
+    },
+    "sparse_rag_plus_memory": {
+      "accuracy": 1.0,
+      "cost_usd": 0.00803,
+      "mode": "sparse_rag_plus_memory",
+      "n_cases": 1,
+      "n_correct": 1,
+      "results": [
+        {
+          "applied_rules": [
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_3371f8328b"
+            },
+            {
+              "applied": false,
+              "rationale": "",
+              "rule_id": "rule_a5f107a08d"
+            },
+            {
+              "applied": true,
+              "rationale": "",
+              "rule_id": "rule_6d3cbb9182"
+            }
+          ],
+          "case_id": "adv_010",
+          "confidence": 0.92,
+          "correct": true,
+          "cost_usd": 0.00803,
+          "determination": "approved",
+          "ground_truth": "approved",
+          "input_tokens": 2059,
+          "output_tokens": 1194,
+          "retrieved_rule_ids": [
+            "rule_3371f8328b",
+            "rule_a5f107a08d",
+            "rule_6d3cbb9182"
+          ]
+        }
+      ]
+    },
+    "train": {
+      "cost_train": 0.18521,
+      "elapsed_seconds": 365.6,
+      "label": "A2-loo010",
+      "n_agent_correct": 26,
+      "n_critic_agreed": 24,
+      "n_rules_promoted": 74,
+      "n_train_cases": 29
+    }
+  },
+  "elapsed_seconds": 782.5,
+  "eval_seed": 11,
+  "experiment": "C_heldout_generalization",
+  "policy_max_chars": 200,
+  "total_cost_usd": 0.42119,
+  "train_seed": 42,
+  "version": "v0.2"
+}
