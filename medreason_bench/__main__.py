@@ -20,8 +20,11 @@ from pathlib import Path
 
 from .data import parse_lcd_xml
 from .data.case_builder import build_cases_from_lcd
+from .eval.harness import EvalConfig, run_eval
+from .leaderboard.build import build_entry, save_entry
 from .splits import (
     SplitRatios,
+    load_split,
     stratify,
     verify_manifest,
     write_manifest,
@@ -32,6 +35,8 @@ from .splits import (
 _DEFAULT_LCD = Path(__file__).parent / "data" / "fixtures" / "sample_lcd.xml"
 # Default splits root.
 _SPLITS_ROOT = Path(__file__).parent / "data" / "splits"
+# Leaderboard output root.
+_LEADERBOARD_ROOT = Path(__file__).parent / "leaderboard" / "entries"
 
 
 def _cmd_data_build(args: argparse.Namespace) -> int:
@@ -102,6 +107,71 @@ def _cmd_splits_verify(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_eval(args: argparse.Namespace) -> int:
+    # Runner selection. Only Claude is wired in Phase 4 (OpenAI/Gemini
+    # are skeletons that raise NotImplementedError from .run()).
+    if args.runner == "claude":
+        from medreason.runners import ClaudeRunner
+        runner = ClaudeRunner()
+    elif args.runner in ("gpt4", "openai"):
+        from medreason.runners import OpenAIRunner
+        runner = OpenAIRunner()
+    elif args.runner == "gemini":
+        from medreason.runners import GeminiRunner
+        runner = GeminiRunner()
+    else:
+        print(f"error: unknown runner {args.runner!r}", file=sys.stderr)
+        return 2
+
+    if args.split == "test" and args.memory is False:
+        print(
+            "warning: running zero-shot on the TEST split before the memory "
+            "pipeline is wired is a smell. Prefer --split dev until Phase 5.",
+            file=sys.stderr,
+        )
+
+    config = EvalConfig(
+        runner=runner,
+        splits_root=_SPLITS_ROOT,
+        version=args.version,
+        split=args.split,
+        seeds=list(args.seeds),
+        quick=args.quick,
+        progress_hook=lambda msg: print(msg),
+    )
+
+    print(
+        f"[eval] runner={runner.runner_id}  version={args.version}  "
+        f"split={args.split}  seeds={config.seeds}"
+        + ("  (quick)" if args.quick else "")
+    )
+    run = run_eval(config)
+
+    cases_by_id = {c.case_id: c for c in run.cases}
+    entry, metrics = build_entry(
+        run, cases_by_id,
+        submitter=args.submitter,
+        code_revision=args.revision,
+    )
+
+    print()
+    print(f"  n_cases              : {entry.n_cases}")
+    print(f"  total calls          : {run.total_calls}")
+    print(f"  accuracy (mean, CI)  : {entry.accuracy_mean:.3f}  "
+          f"[{entry.accuracy_ci_low:.3f}, {entry.accuracy_ci_high:.3f}]")
+    print(f"  macro F1             : {entry.macro_f1:.3f}")
+    print(f"  Brier / ECE          : {entry.brier:.3f} / {entry.ece:.3f}")
+    print(f"  avg total tokens     : {entry.avg_total_tokens:.1f}")
+    print(f"  latency p50 / p95    : {entry.p50_latency_ms:.0f}ms / {entry.p95_latency_ms:.0f}ms")
+    print(f"  cost per case        : ${entry.cost_per_case_usd:.5f}")
+    print(f"  total cost           : ${entry.total_cost_usd:.4f}")
+    print(f"  pattern utilization  : {entry.pattern_utilization}")
+
+    out_path = save_entry(entry, _LEADERBOARD_ROOT)
+    print(f"[eval] leaderboard entry saved to {out_path}")
+    return 0
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="medreason-bench",
@@ -144,6 +214,49 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Manifest version tag to verify (default: v0.0)",
     )
     splits_verify.set_defaults(func=_cmd_splits_verify)
+
+    # eval
+    eval_p = sub.add_parser("eval", help="Run an AgentRunner against a split")
+    eval_p.add_argument(
+        "--runner", type=str, default="claude",
+        choices=["claude", "gpt4", "openai", "gemini"],
+        help="Which base runner to use (Phase 4: claude is the only wired adapter)",
+    )
+    eval_p.add_argument(
+        "--memory", action="store_true",
+        help="Wrap the runner in the memory pipeline (Phase 5+)",
+    )
+    eval_p.add_argument(
+        "--no-memory", dest="memory", action="store_false",
+        help="Run zero-shot (default)",
+    )
+    eval_p.set_defaults(memory=False)
+    eval_p.add_argument(
+        "--split", type=str, default="dev",
+        choices=["train", "dev", "test"],
+        help="Which split to evaluate against",
+    )
+    eval_p.add_argument(
+        "--version", type=str, default="v0.0",
+        help="Manifest version to load",
+    )
+    eval_p.add_argument(
+        "--seeds", type=int, nargs="+", default=[11, 17, 23, 29, 31],
+        help="Seed set for multi-seed eval (default: 5 primes)",
+    )
+    eval_p.add_argument(
+        "--quick", action="store_true",
+        help="Sample 10 stratified cases for cheap dev iteration",
+    )
+    eval_p.add_argument(
+        "--submitter", type=str, default="local",
+        help="Leaderboard submitter id",
+    )
+    eval_p.add_argument(
+        "--revision", type=str, default="",
+        help="Code revision stamp (e.g., git sha)",
+    )
+    eval_p.set_defaults(func=_cmd_eval)
 
     return parser
 

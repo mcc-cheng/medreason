@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import sqlite3
+from dataclasses import dataclass, field
+from typing import Callable, Optional
 
 import pytest
 
@@ -109,6 +111,76 @@ def make_case(
         ],
         difficulty=difficulty or Difficulty.MEDIUM,
     )
+
+
+@dataclass
+class FakeRunner:
+    """AgentRunner that returns canned AgentResults per case_id.
+
+    Phase 4 harness tests use this to exercise the full
+    load_split → run → metrics → leaderboard pipeline without touching
+    any real LLM API. Conforms to medreason.runners.base.AgentRunner.
+
+    Args:
+        responses: case_id → dict with optional keys determination
+            (Outcome or str), confidence, input_tokens, output_tokens,
+            latency_ms, cost_usd. Missing keys fall back to defaults.
+        default_determination: Fallback Outcome when a case_id is not in
+            `responses` — useful for "predict APPROVED for every case"
+            baseline runners.
+        default_correct_flag: If True, override `correct` to True on
+            every result regardless of ground truth. Used for upper-
+            bound sanity checks.
+    """
+    runner_id: str = "fake-runner-v0"
+    model_version: str = "fake-runner-v0"
+    supports_memory: bool = True
+    responses: dict = field(default_factory=dict)
+    default_determination: object = None  # Outcome or None
+    default_confidence: float = 0.5
+    default_input_tokens: int = 100
+    default_output_tokens: int = 40
+    default_latency_ms: float = 250.0
+    default_cost_usd: float = 0.0005
+    call_log: list = field(default_factory=list)
+
+    def run(self, case, *, seed: int = 0, system_extra: str = ""):
+        from medreason.ontology import AgentResult, Outcome
+        self.call_log.append((case.case_id, seed, bool(system_extra)))
+        entry = self.responses.get(case.case_id, {})
+
+        det_raw = entry.get("determination", self.default_determination)
+        if det_raw is None:
+            determination = case.ground_truth_outcome  # perfect oracle
+        elif isinstance(det_raw, str):
+            determination = Outcome(det_raw)
+        else:
+            determination = det_raw
+
+        confidence = float(entry.get("confidence", self.default_confidence))
+        input_tokens = int(entry.get("input_tokens", self.default_input_tokens))
+        output_tokens = int(entry.get("output_tokens", self.default_output_tokens))
+        latency_ms = float(entry.get("latency_ms", self.default_latency_ms))
+        cost_usd = float(entry.get("cost_usd", self.default_cost_usd))
+
+        return AgentResult(
+            case_id=case.case_id,
+            determination=determination,
+            reasoning_chain=entry.get("reasoning_chain", "fake"),
+            confidence=confidence,
+            key_factors=entry.get("key_factors", ["fake factor"]),
+            correct=(determination == case.ground_truth_outcome),
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            cost_usd=cost_usd,
+            latency_ms=latency_ms,
+            runner_id=self.runner_id,
+            seed=seed,
+            mode="memory" if system_extra else "zero_shot",
+        )
+
+    def estimated_cost_per_call(self) -> float:
+        return self.default_cost_usd
 
 
 def make_trace(
