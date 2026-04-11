@@ -22,6 +22,7 @@ from collections import Counter
 from pathlib import Path
 
 from .data import parse_lcd_xml
+from .data.adversarial_cases import build_adversarial_cases
 from .data.case_builder import build_cases_from_lcd
 from .eval.harness import EvalConfig, run_eval
 from .leaderboard.build import build_entry, save_entry
@@ -65,23 +66,28 @@ def _build_claude_llm_client(model_alias: str):
 
 
 def _cmd_data_build(args: argparse.Namespace) -> int:
-    lcd_path = Path(args.lcd) if args.lcd else _DEFAULT_LCD
-    if not lcd_path.exists():
-        print(f"error: LCD file not found: {lcd_path}", file=sys.stderr)
-        return 2
+    if args.source == "adversarial":
+        print(f"[data build] using adversarial v0.1 fixture (hand-authored)")
+        cases = build_adversarial_cases()
+        print(f"  loaded {len(cases)} adversarial cases")
+    else:
+        lcd_path = Path(args.lcd) if args.lcd else _DEFAULT_LCD
+        if not lcd_path.exists():
+            print(f"error: LCD file not found: {lcd_path}", file=sys.stderr)
+            return 2
 
-    print(f"[data build] reading LCD from {lcd_path}")
-    policy = parse_lcd_xml(lcd_path)
-    print(
-        f"  {policy.document_id}: {policy.title}  "
-        f"({len(policy.cpt_codes)} CPTs, {len(policy.indications)} criteria, "
-        f"{len(policy.limitations)} limitations)"
-    )
+        print(f"[data build] reading LCD from {lcd_path}")
+        policy = parse_lcd_xml(lcd_path)
+        print(
+            f"  {policy.document_id}: {policy.title}  "
+            f"({len(policy.cpt_codes)} CPTs, {len(policy.indications)} criteria, "
+            f"{len(policy.limitations)} limitations)"
+        )
 
-    print(f"[data build] generating {args.target} cases (seed={args.seed})")
-    cases = build_cases_from_lcd(
-        policy, target_count=args.target, seed=args.seed
-    )
+        print(f"[data build] generating {args.target} cases (seed={args.seed})")
+        cases = build_cases_from_lcd(
+            policy, target_count=args.target, seed=args.seed
+        )
     outcome_counts = Counter(c.ground_truth_outcome.value for c in cases)
     diff_counts = Counter(c.difficulty.value for c in cases)
     print(
@@ -144,12 +150,9 @@ def _cmd_train(args: argparse.Namespace) -> int:
 
     from .train import TrainingConfig, run_training
 
-    lcd_path = Path(args.lcd) if args.lcd else _DEFAULT_LCD
-    if not lcd_path.exists():
-        print(f"error: LCD file not found: {lcd_path}", file=sys.stderr)
-        return 2
-
-    # Load the training split
+    # Load the training split first so we can detect adversarial fixtures
+    # by checking the version tag (v0.1 = adversarial; everything else
+    # uses the bundled LCD).
     split_dir = _SPLITS_ROOT / args.version
     if not split_dir.exists():
         print(f"error: no splits directory at {split_dir}", file=sys.stderr)
@@ -157,6 +160,16 @@ def _cmd_train(args: argparse.Namespace) -> int:
     train_cases = load_split(split_dir, args.split)
     if args.max_cases:
         train_cases = train_cases[: args.max_cases]
+
+    # Detect multi-policy mode: --multi-policy flag, OR no --lcd given
+    # AND the case_ids look adversarial (start with 'adv_'). In multi-
+    # policy mode the proposer reads each case's policy_excerpt and the
+    # citation validator is wildcarded.
+    is_multi_policy = (
+        args.multi_policy
+        or (args.lcd is None and any(c.case_id.startswith("adv_")
+                                     for c in train_cases))
+    )
 
     # Build runner + LLM clients (same model for all three slots in the
     # cheap run — cross-vendor critic is Phase 7)
@@ -173,11 +186,20 @@ def _cmd_train(args: argparse.Namespace) -> int:
     rule_store = RuleStore(conn)
     trace_store = TraceStore(conn)
 
-    policy = parse_lcd_xml(lcd_path)
-    print(
-        f"[train] policy {policy.document_id}: {policy.title}  "
-        f"({len(policy.cpt_codes)} CPTs, {len(policy.indications)} criteria)"
-    )
+    policy = None
+    if is_multi_policy:
+        print("[train] multi-policy mode: proposer will read each case's "
+              "policy_excerpt directly (citation validator wildcarded)")
+    else:
+        lcd_path = Path(args.lcd) if args.lcd else _DEFAULT_LCD
+        if not lcd_path.exists():
+            print(f"error: LCD file not found: {lcd_path}", file=sys.stderr)
+            return 2
+        policy = parse_lcd_xml(lcd_path)
+        print(
+            f"[train] policy {policy.document_id}: {policy.title}  "
+            f"({len(policy.cpt_codes)} CPTs, {len(policy.indications)} criteria)"
+        )
     print(
         f"[train] runner={runner.runner_id}  critic={critic_llm.model_version}  "
         f"proposer={proposer_llm.model_version}"
@@ -199,6 +221,7 @@ def _cmd_train(args: argparse.Namespace) -> int:
         split=args.split,
         gate_k=args.gate_k,
         gate_seed=args.seed,
+        skip_gate=args.skip_gate,
         embedder=FakeEmbedder(),
         progress_hook=lambda msg: print(msg),
         seed=args.seed,
@@ -395,12 +418,18 @@ def _build_parser() -> argparse.ArgumentParser:
         "build", help="Parse an LCD and build a stratified manifest"
     )
     data_build.add_argument(
+        "--source", type=str, default="lcd",
+        choices=["lcd", "adversarial"],
+        help="Case source: 'lcd' (template-expanded from an LCD XML, "
+             "default) or 'adversarial' (the v0.1 hand-authored fixture)",
+    )
+    data_build.add_argument(
         "--lcd", type=str, default=None,
-        help="Path to an LCD XML file (defaults to the bundled fixture)",
+        help="Path to an LCD XML file (only used when --source=lcd)",
     )
     data_build.add_argument(
         "--target", type=int, default=50,
-        help="Number of cases to generate (default: 50)",
+        help="Number of cases to generate (only used when --source=lcd)",
     )
     data_build.add_argument(
         "--version", type=str, default="v0.0",
@@ -458,7 +487,23 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     train_p.add_argument(
         "--lcd", type=str, default=None,
-        help="Path to the LCD XML policy (default: bundled fixture)",
+        help="Path to the LCD XML policy (default: bundled fixture). "
+             "Ignored when --multi-policy is set or when training cases "
+             "are detected as adversarial (case_ids starting with 'adv_').",
+    )
+    train_p.add_argument(
+        "--multi-policy", action="store_true",
+        help="Multi-policy mode: each case's policy_excerpt is the source "
+             "the proposer reads from (instead of a single LCD XML). "
+             "Citation validator becomes a wildcard.",
+    )
+    train_p.add_argument(
+        "--skip-gate", action="store_true",
+        help="Bypass the generalization gate. Promotes every critic-"
+             "verified candidate directly. Used for sparse fixtures "
+             "where the gate's structural-trigger matching can't find "
+             "held-out cases. Critic verification remains the only "
+             "quality filter.",
     )
     train_p.add_argument(
         "--seed", type=int, default=0,

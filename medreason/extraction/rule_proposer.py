@@ -182,15 +182,32 @@ def _citation_exists_in_policy(citation: str, policy) -> bool:
     `policy.indications` or `policy.limitations`.
 
     Accepts both "CMS LCD L34522 §C.1" and "L34522 §C.1" style.
+
+    Multi-policy / wildcard mode: when policy is None, accept any
+    non-empty citation. This is used by the training loop when
+    running against the v0.1 adversarial fixture, where each case
+    carries its own policy_excerpt referencing a different payer's
+    documentation. Real payer policies don't follow CMS LCD section
+    conventions (Aetna uses 'Indication 1', Cigna uses
+    'ANTICOAGULATION REQUIREMENT', BCBS uses paragraph references)
+    so requiring a strict §A.1 format here would reject every
+    multi-policy citation. The trade-off is that hallucinated
+    citations CAN slip through in wildcard mode — that's a Phase 7
+    concern when we add a real LCD-database lookup.
     """
     if not citation:
         return False
+
+    # Wildcard mode: any non-empty citation passes.
+    if policy is None:
+        return True
+
     # Extract the section id fragment after §
     idx = citation.find("§")
     if idx == -1:
-        # Tolerate the ASCII fallback '§' missing — look for a
-        # capital-letter dotted id like "C.1" or "L.2" at the end.
-        m = re.search(r"\b([CL])\.\d+\b", citation)
+        # Tolerate the ASCII fallback '§' missing — look for any
+        # capital-letter dotted id like "C.1", "A.7", "L.2".
+        m = re.search(r"\b([A-Z])\.\d+\b", citation)
         if not m:
             return False
         section_id = m.group(0)
@@ -328,6 +345,7 @@ def propose_rules(
     proposer_run_id: Optional[str] = None,
     max_tokens: int = 2048,
     seed: int = 0,
+    policy_excerpt_text: Optional[str] = None,
 ) -> ProposalResult:
     """Ask the proposer LLM for candidate rules and validate them.
 
@@ -338,7 +356,15 @@ def propose_rules(
 
     `policy` is the LCDPolicy (or anything with .indications/.limitations
     lists of objects with .criterion_id/.limitation_id). Citation
-    validation walks these lists.
+    validation walks these lists. Pass `policy=None` to skip citation
+    validation entirely (useful when training on multi-policy fixtures
+    where each case has its own excerpt).
+
+    `policy_excerpt_text` is an optional raw policy text used to
+    populate the ## Policy excerpt section of the user message when
+    no structured `policy` object is available. Required when
+    policy=None — otherwise the proposer has nothing to extract rules
+    from.
 
     `supporting_case_ids` must contain only train+dev case_ids. The
     LeakGuard will reject any rule referencing a test case_id at
@@ -370,10 +396,15 @@ def propose_rules(
         "",
         "## Policy excerpt",
     ])
-    for crit in getattr(policy, "indications", []):
-        user_parts.append(f"§{crit.criterion_id} ({crit.tag}): {crit.text}")
-    for lim in getattr(policy, "limitations", []):
-        user_parts.append(f"§{lim.limitation_id} ({lim.tag}): {lim.text}")
+    if policy_excerpt_text:
+        # Multi-policy fixture: use the case-specific excerpt directly.
+        user_parts.append(policy_excerpt_text.strip())
+    else:
+        # Structured LCDPolicy: render its indications/limitations lists.
+        for crit in getattr(policy, "indications", []):
+            user_parts.append(f"§{crit.criterion_id} ({crit.tag}): {crit.text}")
+        for lim in getattr(policy, "limitations", []):
+            user_parts.append(f"§{lim.limitation_id} ({lim.tag}): {lim.text}")
 
     user_msg = "\n".join(user_parts)
 

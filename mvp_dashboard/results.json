@@ -1,324 +1,364 @@
 {
   "cases": [
     {
-      "case_id": "case_0004",
-      "ground_truth": "approved",
+      "case_id": "adv_002",
+      "ground_truth": "denied",
       "memory": {
-        "applied_count": 6,
-        "confidence": 0.95,
+        "applied_count": 2,
+        "confidence": 0.92,
         "correct": true,
-        "cost_usd": 0.008378,
-        "determination": "approved",
-        "retrieved_count": 6,
-        "tokens": 3170
+        "cost_usd": 0.004799,
+        "determination": "denied",
+        "retrieved_count": 3,
+        "tokens": 1739
       },
       "zero_shot": {
         "confidence": 0.92,
         "correct": true,
-        "cost_usd": 0.003426,
-        "determination": "approved",
-        "tokens": 1290
+        "cost_usd": 0.003323,
+        "determination": "denied",
+        "tokens": 1255
       }
     },
     {
-      "case_id": "case_0009",
-      "ground_truth": "approved",
+      "case_id": "adv_004",
+      "ground_truth": "denied",
       "memory": {
-        "applied_count": 4,
-        "confidence": 0.94,
-        "correct": true,
-        "cost_usd": 0.008684,
+        "applied_count": 0,
+        "confidence": 0.88,
+        "correct": false,
+        "cost_usd": 0.006791,
         "determination": "approved",
-        "retrieved_count": 6,
-        "tokens": 3228
+        "retrieved_count": 3,
+        "tokens": 2955
       },
       "zero_shot": {
-        "confidence": 0.94,
-        "correct": true,
-        "cost_usd": 0.003372,
+        "confidence": 0.82,
+        "correct": false,
+        "cost_usd": 0.003443,
         "determination": "approved",
-        "tokens": 1276
+        "tokens": 1275
       }
     },
     {
-      "case_id": "case_0012",
+      "case_id": "adv_005",
+      "ground_truth": "denied",
+      "memory": {
+        "applied_count": 0,
+        "confidence": 0.82,
+        "correct": true,
+        "cost_usd": 0.010305,
+        "determination": "denied",
+        "retrieved_count": 2,
+        "tokens": 3601
+      },
+      "zero_shot": {
+        "confidence": 0.78,
+        "correct": true,
+        "cost_usd": 0.003991,
+        "determination": "denied",
+        "tokens": 1395
+      }
+    },
+    {
+      "case_id": "adv_006",
+      "ground_truth": "denied",
+      "memory": {
+        "applied_count": 0,
+        "confidence": 0.92,
+        "correct": false,
+        "cost_usd": 0.009626,
+        "determination": "approved",
+        "retrieved_count": 3,
+        "tokens": 3462
+      },
+      "zero_shot": {
+        "confidence": 0.92,
+        "correct": false,
+        "cost_usd": 0.003545,
+        "determination": "approved",
+        "tokens": 1281
+      }
+    },
+    {
+      "case_id": "adv_007",
+      "ground_truth": "denied",
+      "memory": {
+        "applied_count": 0,
+        "confidence": 0.95,
+        "correct": true,
+        "cost_usd": 0.004191,
+        "determination": "denied",
+        "retrieved_count": 3,
+        "tokens": 1575
+      },
+      "zero_shot": {
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.003142,
+        "determination": "denied",
+        "tokens": 1210
+      }
+    },
+    {
+      "case_id": "adv_010",
+      "ground_truth": "approved",
+      "memory": {
+        "applied_count": 0,
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.008192,
+        "determination": "approved",
+        "retrieved_count": 3,
+        "tokens": 3232
+      },
+      "zero_shot": {
+        "confidence": 0.78,
+        "correct": false,
+        "cost_usd": 0.003737,
+        "determination": "denied",
+        "tokens": 1353
+      }
+    },
+    {
+      "case_id": "adv_012",
+      "ground_truth": "approved",
+      "memory": {
+        "applied_count": 1,
+        "confidence": 0.92,
+        "correct": true,
+        "cost_usd": 0.009731,
+        "determination": "approved",
+        "retrieved_count": 3,
+        "tokens": 3539
+      },
+      "zero_shot": {
+        "confidence": 0.78,
+        "correct": false,
+        "cost_usd": 0.003686,
+        "determination": "denied",
+        "tokens": 1342
+      }
+    },
+    {
+      "case_id": "adv_013",
       "ground_truth": "approved",
       "memory": {
         "applied_count": 3,
-        "confidence": 0.94,
+        "confidence": 0.98,
         "correct": true,
-        "cost_usd": 0.009343,
+        "cost_usd": 0.005649,
         "determination": "approved",
-        "retrieved_count": 6,
-        "tokens": 3387
+        "retrieved_count": 3,
+        "tokens": 1901
       },
       "zero_shot": {
-        "confidence": 0.94,
+        "confidence": 0.95,
         "correct": true,
-        "cost_usd": 0.003298,
+        "cost_usd": 0.003024,
         "determination": "approved",
-        "tokens": 1250
+        "tokens": 1204
       }
     },
     {
-      "case_id": "case_0022",
-      "ground_truth": "denied",
+      "case_id": "adv_014",
+      "ground_truth": "approved",
       "memory": {
-        "applied_count": 5,
-        "confidence": 0.98,
+        "applied_count": 1,
+        "confidence": 0.88,
         "correct": true,
-        "cost_usd": 0.006657,
-        "determination": "denied",
-        "retrieved_count": 6,
-        "tokens": 2773
+        "cost_usd": 0.009007999999999999,
+        "determination": "approved",
+        "retrieved_count": 3,
+        "tokens": 3404
       },
       "zero_shot": {
         "confidence": 0.92,
         "correct": true,
-        "cost_usd": 0.002755,
-        "determination": "denied",
-        "tokens": 1123
+        "cost_usd": 0.003038,
+        "determination": "approved",
+        "tokens": 1214
       }
     },
     {
-      "case_id": "case_0023",
-      "ground_truth": "denied",
+      "case_id": "adv_016",
+      "ground_truth": "overturned_on_appeal",
       "memory": {
-        "applied_count": 5,
-        "confidence": 0.98,
+        "applied_count": 0,
+        "confidence": 0.82,
         "correct": true,
-        "cost_usd": 0.007127,
-        "determination": "denied",
-        "retrieved_count": 6,
-        "tokens": 2867
+        "cost_usd": 0.008793,
+        "determination": "overturned_on_appeal",
+        "retrieved_count": 3,
+        "tokens": 3389
       },
       "zero_shot": {
-        "confidence": 0.92,
-        "correct": true,
-        "cost_usd": 0.00281,
-        "determination": "denied",
-        "tokens": 1134
+        "confidence": 0.89,
+        "correct": false,
+        "cost_usd": 0.00305,
+        "determination": "approved",
+        "tokens": 1218
       }
     },
     {
-      "case_id": "case_0025",
+      "case_id": "adv_017",
       "ground_truth": "overturned_on_appeal",
       "memory": {
         "applied_count": 3,
         "confidence": 0.78,
         "correct": true,
-        "cost_usd": 0.009489,
+        "cost_usd": 0.010457000000000001,
         "determination": "overturned_on_appeal",
-        "retrieved_count": 6,
-        "tokens": 3397
+        "retrieved_count": 3,
+        "tokens": 3713
       },
       "zero_shot": {
-        "confidence": 0.78,
+        "confidence": 0.82,
         "correct": true,
-        "cost_usd": 0.003972,
+        "cost_usd": 0.004309,
         "determination": "overturned_on_appeal",
-        "tokens": 1404
+        "tokens": 1481
       }
     },
     {
-      "case_id": "case_0032",
-      "ground_truth": "approved",
+      "case_id": "adv_020",
+      "ground_truth": "overturned_on_appeal",
       "memory": {
-        "applied_count": 5,
-        "confidence": 0.94,
+        "applied_count": 3,
+        "confidence": 0.92,
         "correct": true,
-        "cost_usd": 0.008461,
-        "determination": "approved",
-        "retrieved_count": 6,
-        "tokens": 3157
+        "cost_usd": 0.005014,
+        "determination": "overturned_on_appeal",
+        "retrieved_count": 3,
+        "tokens": 1770
       },
       "zero_shot": {
-        "confidence": 0.92,
+        "confidence": 0.88,
         "correct": true,
-        "cost_usd": 0.003243,
-        "determination": "approved",
-        "tokens": 1271
-      }
-    },
-    {
-      "case_id": "case_0034",
-      "ground_truth": "approved",
-      "memory": {
-        "applied_count": 6,
-        "confidence": 0.92,
-        "correct": true,
-        "cost_usd": 0.00756,
-        "determination": "approved",
-        "retrieved_count": 6,
-        "tokens": 3004
-      },
-      "zero_shot": {
-        "confidence": 0.93,
-        "correct": true,
-        "cost_usd": 0.003201,
-        "determination": "approved",
-        "tokens": 1245
-      }
-    },
-    {
-      "case_id": "case_0045",
-      "ground_truth": "denied",
-      "memory": {
-        "applied_count": 1,
-        "confidence": 0.92,
-        "correct": true,
-        "cost_usd": 0.007504,
-        "determination": "denied",
-        "retrieved_count": 6,
-        "tokens": 2968
-      },
-      "zero_shot": {
-        "confidence": 0.92,
-        "correct": true,
-        "cost_usd": 0.003245,
-        "determination": "denied",
-        "tokens": 1233
-      }
-    },
-    {
-      "case_id": "case_0049",
-      "ground_truth": "denied",
-      "memory": {
-        "applied_count": 4,
-        "confidence": 0.92,
-        "correct": true,
-        "cost_usd": 0.006975,
-        "determination": "denied",
-        "retrieved_count": 6,
-        "tokens": 2827
-      },
-      "zero_shot": {
-        "confidence": 0.92,
-        "correct": true,
-        "cost_usd": 0.003315,
-        "determination": "denied",
-        "tokens": 1243
+        "cost_usd": 0.003983,
+        "determination": "overturned_on_appeal",
+        "tokens": 1403
       }
     }
   ],
-  "generated_at": "2026-04-11 06:39 UTC",
+  "generated_at": "2026-04-11 07:15 UTC",
   "memory": {
-    "accuracy": 1.0,
-    "avg_total_tokens": 3077.8,
-    "brier": 0.012255000000000002,
+    "accuracy": 0.8333333333333334,
+    "avg_total_tokens": 2856.6666666666665,
+    "brier": 0.30544583333333325,
     "correct": 10,
-    "cost_per_case_usd": 0.0080178,
-    "ece": 0.07299999999999998,
-    "macro_f1": 1.0,
-    "n_cases": 10,
-    "p50_latency_ms": 11111.282229423523,
-    "p95_latency_ms": 14674.305081367493,
-    "pattern_utilization": 0.7,
-    "total_cost_usd": 0.080178
+    "cost_per_case_usd": 0.007713,
+    "ece": 0.09583333333333327,
+    "macro_f1": 0.85,
+    "n_cases": 12,
+    "p50_latency_ms": 13417.831301689148,
+    "p95_latency_ms": 15845.45658826828,
+    "pattern_utilization": 0.37142857142857144,
+    "total_cost_usd": 0.092556
   },
   "model": "haiku",
   "seeds": [
     11
   ],
-  "split": "dev",
+  "split": "train",
   "top_rules": [
     {
-      "action": "If progressive motor weakness, gait abnormality, or reflex changes documented over days, approve even if conservative therapy <6 weeks.",
-      "posterior": 0.8,
-      "rule_id": "rule_c3193e9a00",
-      "seen": 10,
-      "trials": 3
-    },
-    {
-      "action": "Approve imaging when rapidly progressive motor deficit with objective findings correlates with lumbar radiculopathy, even if <6 weeks conservative therapy.",
-      "posterior": 0.8333333333333334,
-      "rule_id": "rule_258f347d5f",
-      "seen": 8,
-      "trials": 4
-    },
-    {
-      "action": "Require documentation of new neurologic deficit, significant clinical change, or post-operative evaluation status.",
-      "posterior": 0.75,
-      "rule_id": "rule_36c6b36c4e",
-      "seen": 8,
-      "trials": 2
-    },
-    {
-      "action": "Verify new neurologic deficit, significant clinical change, or post-operative evaluation indication documented.",
-      "posterior": 0.75,
-      "rule_id": "rule_c82191b945",
-      "seen": 8,
-      "trials": 2
-    },
-    {
-      "action": "Deny imaging; pain alone without neurological findings does not meet policy criteria.",
-      "posterior": 0.75,
-      "rule_id": "rule_fe6705fb54",
-      "seen": 8,
-      "trials": 2
-    },
-    {
-      "action": "Require objective neurological findings: motor deficit, dermatomal sensory loss, reflex changes, or cauda equina signs.",
-      "posterior": 0.8,
-      "rule_id": "rule_89a36c7b25",
-      "seen": 6,
-      "trials": 3
-    },
-    {
-      "action": "Require documentation of new neurologic deficit, significant clinical change, or post-operative evaluation scenario.",
-      "posterior": 0.75,
-      "rule_id": "rule_7fc362c9c1",
-      "seen": 6,
-      "trials": 2
-    },
-    {
-      "action": "Require documentation of motor weakness progression over serial visits to justify expedited imaging.",
+      "action": "Approve if documentation shows PET would distinguish locoregional vs metastatic disease.",
       "posterior": 0.6666666666666666,
-      "rule_id": "rule_c661952a2e",
-      "seen": 6,
+      "rule_id": "rule_ffee54d490",
+      "seen": 7,
       "trials": 1
     },
     {
-      "action": "Deny repeat imaging without documentation of new neurologic deficit or significant clinical change.",
+      "action": "Approve CABG as Class I guideline-directed indication.",
       "posterior": 0.6666666666666666,
-      "rule_id": "rule_d6f299f66d",
-      "seen": 6,
+      "rule_id": "rule_72ed126c42",
+      "seen": 5,
       "trials": 1
     },
     {
-      "action": "Approve imaging without requiring 6 weeks of prior conservative therapy due to surgical emergency exception.",
+      "action": "Approve out-of-network ED services if prudent layperson standard is met.",
+      "posterior": 0.75,
+      "rule_id": "rule_b0824d9cec",
+      "seen": 4,
+      "trials": 2
+    },
+    {
+      "action": "Require 3-day apixaban hold prior to procedure; 24-hour hold is insufficient.",
+      "posterior": 0.5,
+      "rule_id": "rule_6fd3b92c85",
+      "seen": 4,
+      "trials": 0
+    },
+    {
+      "action": "If patient age <50 and no alarm features documented, deny as routine screening.",
       "posterior": 0.6666666666666666,
-      "rule_id": "rule_e4dcfe4540",
-      "seen": 6,
+      "rule_id": "rule_f27157fa3d",
+      "seen": 3,
       "trials": 1
+    },
+    {
+      "action": "Document presence of alarm features: dysphagia, odynophagia, weight loss >5%, hematemesis, melena, anemia, or family history of esophageal/gastric cancer.",
+      "posterior": 0.6666666666666666,
+      "rule_id": "rule_a6515e510b",
+      "seen": 3,
+      "trials": 1
+    },
+    {
+      "action": "Verify updated treatment plan documenting current deficits and modifications from prior course.",
+      "posterior": 0.6666666666666666,
+      "rule_id": "rule_edce670be2",
+      "seen": 3,
+      "trials": 1
+    },
+    {
+      "action": "Verify documentation of reasonable expectation of further improvement with specific clinical rationale.",
+      "posterior": 0.6666666666666666,
+      "rule_id": "rule_182850fd14",
+      "seen": 3,
+      "trials": 1
+    },
+    {
+      "action": "Flag for appeal review under Indication 2 if stage III with treatment-altering imaging rationale.",
+      "posterior": 0.6666666666666666,
+      "rule_id": "rule_8955246574",
+      "seen": 3,
+      "trials": 1
+    },
+    {
+      "action": "Apply prudent layperson standard: would reasonable layperson recognize need for immediate care to avoid serious harm?",
+      "posterior": 0.75,
+      "rule_id": "rule_8f17120588",
+      "seen": 2,
+      "trials": 2
     }
   ],
   "training": {
-    "cost_total": 0.52635,
-    "elapsed_seconds": 2185.838752,
-    "n_agent_correct": 10,
-    "n_cases_seen": 10,
-    "n_critic_agreed": 10,
-    "n_rules_deferred": 1,
+    "cost_total": 0.06676,
+    "elapsed_seconds": 126.46863,
+    "n_agent_correct": 7,
+    "n_cases_seen": 12,
+    "n_critic_agreed": 6,
+    "n_rules_deferred": 0,
     "n_rules_deprecated": 0,
-    "n_rules_promoted": 50,
-    "n_rules_proposed": 51,
+    "n_rules_promoted": 22,
+    "n_rules_proposed": 22,
     "n_rules_rejected": 0,
-    "n_traces_stored": 10
+    "n_traces_stored": 6
   },
-  "version": "v0.0",
+  "version": "v0.1",
   "zero_shot": {
-    "accuracy": 1.0,
-    "avg_total_tokens": 1246.9,
-    "brier": 0.014834999999999996,
-    "correct": 10,
-    "cost_per_case_usd": 0.0032637,
-    "ece": 0.089,
-    "macro_f1": 1.0,
-    "n_cases": 10,
-    "p50_latency_ms": 5549.391746520996,
-    "p95_latency_ms": 6619.397056102752,
+    "accuracy": 0.5833333333333334,
+    "avg_total_tokens": 1302.5833333333335,
+    "brier": 0.6639083333333334,
+    "correct": 7,
+    "cost_per_case_usd": 0.0035225833333333337,
+    "ece": 0.28166666666666657,
+    "macro_f1": 0.6148148148148148,
+    "n_cases": 12,
+    "p50_latency_ms": 5621.432542800903,
+    "p95_latency_ms": 7100.284969806671,
     "pattern_utilization": null,
-    "total_cost_usd": 0.032637
+    "total_cost_usd": 0.042271
   }
 }

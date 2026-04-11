@@ -19,7 +19,6 @@ from .claude import (
     resolve_claude_model,
 )
 from .gemini import GEMINI_PRICING, DEFAULT_GEMINI_MODEL, GeminiRunner
-from .memory_wrapper import MemoryRunner, MemoryRunnerStats
 from .openai import DEFAULT_OPENAI_MODEL, OPENAI_PRICING, OpenAIRunner
 from ._prompting import (
     ResponseParseError,
@@ -27,6 +26,21 @@ from ._prompting import (
     compute_cost_usd,
     parse_json_response,
 )
+
+
+# MemoryRunner is intentionally lazy-imported via PEP 562 __getattr__.
+# Loading it eagerly would create a cycle: medreason.runners ->
+# memory_wrapper -> medreason.retrieval -> medreason.retrieval.injector ->
+# medreason.runners._prompting -> medreason.runners (circular). Lazy
+# import means MemoryRunner only resolves when a caller actually
+# touches it, after both packages are fully initialized.
+def __getattr__(name):
+    if name in ("MemoryRunner", "MemoryRunnerStats"):
+        from .memory_wrapper import MemoryRunner, MemoryRunnerStats
+        if name == "MemoryRunner":
+            return MemoryRunner
+        return MemoryRunnerStats
+    raise AttributeError(f"module 'medreason.runners' has no attribute {name!r}")
 
 __all__ = [
     # Protocol

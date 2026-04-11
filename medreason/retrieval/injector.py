@@ -29,7 +29,12 @@ from typing import Iterable
 
 from ..ontology.result import AppliedRule
 from ..ontology.rule import ReasoningRule
-from ..runners._prompting import ResponseParseError, parse_json_response
+
+# NOTE: we deliberately do NOT import from medreason.runners at module
+# top level. medreason.runners.__init__ imports memory_wrapper which
+# imports this very module, so a top-level import here would create a
+# circular dependency that crashes whichever side gets imported first.
+# parse_applied_rules() lazy-imports the JSON helpers when called.
 
 
 # Mirrors medreason.extraction.rule_proposer.ACTION_MAX_WORDS for
@@ -45,8 +50,25 @@ APPLIED_RULES_FIELD = "applied_rules"
 # ── Checklist builder ────────────────────────────────────────────────────────
 
 
-def build_rule_checklist(rules: list[ReasoningRule]) -> str:
+def build_rule_checklist(
+    rules: list[ReasoningRule],
+    *,
+    compact: bool = True,
+) -> str:
     """Build the structured injection block. Returns "" when rules is empty.
+
+    Two formats:
+
+    - **compact (default)**: one line per rule (`[rule_id] ACTION`),
+      minimal output contract that asks only for `{rule_id, applied}`
+      with rationale optional. Designed to keep the injection token
+      cost under control. ~15 tokens per rule + ~80 token footer.
+
+    - **verbose** (compact=False): the original multi-line format with
+      trigger summary, posterior, polarity, rationale, citation, and
+      semantic predicate. Useful for debugging and audit but ~60+
+      tokens per rule. The output contract requires a `rationale` field
+      per applied rule.
 
     The returned string is meant to be passed to
     `AgentRunner.run(case, system_extra=<this>)`. Empty input returns an
@@ -56,6 +78,34 @@ def build_rule_checklist(rules: list[ReasoningRule]) -> str:
     if not rules:
         return ""
 
+    if compact:
+        return _build_compact(rules)
+    return _build_verbose(rules)
+
+
+def _build_compact(rules: list[ReasoningRule]) -> str:
+    lines = [
+        "=== REASONING MEMORY ===",
+        f"{len(rules)} rule(s) retrieved from prior cases. Apply each one "
+        "to this case. The clinical notes either satisfy a rule or they "
+        "do not — do not paraphrase a rule away.",
+        "",
+    ]
+    for rule in rules:
+        lines.append(f"[{rule.rule_id}] {rule.action}")
+    lines.extend([
+        "",
+        "OUTPUT CONTRACT: Add this field to your standard determination JSON:",
+        f'"{APPLIED_RULES_FIELD}": [{{"rule_id":"...","applied":true}},'
+        ' ...]',
+        "Emit one entry per rule_id above. `applied`=true means the rule's "
+        "criterion is satisfied by the notes.",
+        "=== END MEMORY ===",
+    ])
+    return "\n".join(lines)
+
+
+def _build_verbose(rules: list[ReasoningRule]) -> str:
     header = [
         "=== INSTITUTIONAL REASONING MEMORY ===",
         f"You have been given {len(rules)} reasoning rule(s) retrieved from",
@@ -68,7 +118,7 @@ def build_rule_checklist(rules: list[ReasoningRule]) -> str:
 
     rule_blocks: list[str] = []
     for rule in rules:
-        rule_blocks.extend(_format_rule(rule))
+        rule_blocks.extend(_format_rule_verbose(rule))
         rule_blocks.append("")
 
     footer = [
@@ -92,7 +142,7 @@ def build_rule_checklist(rules: list[ReasoningRule]) -> str:
     return "\n".join(header + rule_blocks + footer)
 
 
-def _format_rule(rule: ReasoningRule) -> list[str]:
+def _format_rule_verbose(rule: ReasoningRule) -> list[str]:
     # Display rule: use .value for Payer (title-case brand names) and
     # .name.lower() for CPTFamily / ICD10Chapter / FacilityType — the
     # latter two have unnatural values ("M00-M99", "ASC") so the
@@ -145,6 +195,10 @@ def _format_rule(rule: ReasoningRule) -> list[str]:
     return lines
 
 
+# Backward-compat alias used in retrieval/dense.py
+_format_rule = _format_rule_verbose
+
+
 # ── Response-side parsing ────────────────────────────────────────────────────
 
 
@@ -161,6 +215,12 @@ def parse_applied_rules(raw_response_text: str) -> list[AppliedRule]:
     memory wrapper uses `missing_rule_ids()` on the returned list to
     decide whether to re-prompt.
     """
+    # Lazy import to avoid the retrieval ↔ runners cycle. See module docstring.
+    from ..runners._prompting import (  # noqa: PLC0415
+        ResponseParseError,
+        parse_json_response,
+    )
+
     if not raw_response_text:
         return []
     try:

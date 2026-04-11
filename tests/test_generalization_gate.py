@@ -340,7 +340,8 @@ def test_gate_injects_only_the_candidate_rule():
 
     for _, system_extra in runner.calls:
         assert rule.rule_id in system_extra
-        assert "INSTITUTIONAL REASONING MEMORY" in system_extra
+        # Compact mode header (default in build_rule_checklist)
+        assert "REASONING MEMORY" in system_extra
 
 
 # ── Gate does not mutate the rule.status ────────────────────────────────

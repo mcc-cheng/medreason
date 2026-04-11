@@ -66,18 +66,87 @@ def _rule(
 
 def test_build_rule_checklist_empty_returns_empty_string():
     assert build_rule_checklist([]) == ""
+    assert build_rule_checklist([], compact=True) == ""
+    assert build_rule_checklist([], compact=False) == ""
 
 
-def test_build_rule_checklist_contains_header_and_footer():
+# ── Compact format (default) ────────────────────────────────────────────────
+
+
+def test_compact_default_contains_minimal_header():
     out = build_rule_checklist([_rule()])
+    assert "REASONING MEMORY" in out
+    assert "END MEMORY" in out
+    assert "OUTPUT CONTRACT" in out
+
+
+def test_compact_renders_one_line_per_rule_with_id_and_action():
+    rule = _rule(rule_id="rule_xyz789", action="Require 6 weeks PT.")
+    out = build_rule_checklist([rule])
+    assert "[rule_xyz789] Require 6 weeks PT." in out
+
+
+def test_compact_omits_rationale_citation_trigger_summary():
+    rule = _rule(
+        rule_id="rule_compact",
+        rationale="A long-winded rationale that should NOT appear",
+        citation="CMS LCD L99999 §Z.99",
+    )
+    out = build_rule_checklist([rule])
+    # Compact mode strips rationale, citation, trigger summary, posterior
+    assert "long-winded" not in out
+    assert "CMS LCD L99999" not in out
+    assert "TRIGGER" not in out
+    assert "RATIONALE" not in out
+    assert "POLARITY" not in out
+    assert "posterior" not in out
+    # Action and rule_id are still present
+    assert "[rule_compact]" in out
+    assert rule.action in out
+
+
+def test_compact_contract_asks_only_for_id_and_applied():
+    out = build_rule_checklist([_rule()])
+    assert APPLIED_RULES_FIELD in out
+    assert '"rule_id"' in out
+    assert '"applied"' in out
+    # Compact mode does NOT require a rationale field
+    assert '"rationale"' not in out
+
+
+def test_compact_is_substantially_shorter_than_verbose():
+    rules = [_rule(rule_id=f"rule_{i:02d}") for i in range(6)]
+    compact = build_rule_checklist(rules, compact=True)
+    verbose = build_rule_checklist(rules, compact=False)
+    # Compact should be at least 3x smaller than verbose for 6 rules
+    assert len(compact) * 3 < len(verbose), (
+        f"compact={len(compact)} chars, verbose={len(verbose)} chars — "
+        f"compact mode should be substantially smaller"
+    )
+
+
+def test_compact_preserves_rule_order():
+    rules = [_rule(rule_id="rule_a"), _rule(rule_id="rule_b"), _rule(rule_id="rule_c")]
+    out = build_rule_checklist(rules)
+    a_idx = out.index("[rule_a]")
+    b_idx = out.index("[rule_b]")
+    c_idx = out.index("[rule_c]")
+    assert a_idx < b_idx < c_idx
+
+
+# ── Verbose format (explicit opt-in) ────────────────────────────────────────
+
+
+def test_verbose_contains_header_and_footer():
+    out = build_rule_checklist([_rule()], compact=False)
     assert "INSTITUTIONAL REASONING MEMORY" in out
     assert "END INSTITUTIONAL MEMORY" in out
     assert "OUTPUT CONTRACT" in out
 
 
-def test_build_rule_checklist_includes_rule_id_and_fields():
+def test_verbose_includes_rule_id_and_all_fields():
     rule = _rule(rule_id="rule_xyz789", action="Require 6 weeks PT.")
-    out = build_rule_checklist([rule])
+    out = build_rule_checklist([rule], compact=False)
     assert "[rule_xyz789]" in out
     assert "Require 6 weeks PT." in out
     # Trigger summary
@@ -89,44 +158,38 @@ def test_build_rule_checklist_includes_rule_id_and_fields():
     assert "CMS LCD L34522 §C.1" in out
 
 
-def test_build_rule_checklist_posterior_and_trials_rendered():
+def test_verbose_renders_posterior_and_trials():
     rule = _rule(success_count=80, failure_count=20)  # posterior 81/102
-    out = build_rule_checklist([rule])
-    # Posterior ~0.79, trials = 100
+    out = build_rule_checklist([rule], compact=False)
     assert "posterior=0.79" in out
     assert "n=100" in out
 
 
-def test_build_rule_checklist_multiple_rules_numbered():
+def test_verbose_multiple_rules_preserve_order():
     rules = [_rule(rule_id="rule_a"), _rule(rule_id="rule_b"), _rule(rule_id="rule_c")]
-    out = build_rule_checklist(rules)
-    assert "[rule_a]" in out
-    assert "[rule_b]" in out
-    assert "[rule_c]" in out
-    # Order preserved
+    out = build_rule_checklist(rules, compact=False)
     a_idx = out.index("[rule_a]")
     b_idx = out.index("[rule_b]")
     c_idx = out.index("[rule_c]")
     assert a_idx < b_idx < c_idx
 
 
-def test_build_rule_checklist_contract_mentions_applied_rules_field():
-    out = build_rule_checklist([_rule()])
+def test_verbose_contract_mentions_rationale_field():
+    out = build_rule_checklist([_rule()], compact=False)
     assert APPLIED_RULES_FIELD in out
     assert '"rule_id"' in out
     assert '"applied"' in out
-    assert '"rationale"' in out
+    assert '"rationale"' in out  # verbose requires rationale per rule
 
 
-def test_build_rule_checklist_wildcard_trigger():
+def test_verbose_wildcard_trigger():
     rule = _rule(
         rule_id="rule_wild",
         cpt_families=(),
         icd_chapters=(),
         payers=(),
     )
-    out = build_rule_checklist([rule])
-    # Empty trigger should display as "any"
+    out = build_rule_checklist([rule], compact=False)
     assert "TRIGGER:  any" in out or "TRIGGER: any" in out
 
 

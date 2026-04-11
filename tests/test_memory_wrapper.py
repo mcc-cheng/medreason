@@ -217,7 +217,9 @@ def test_memory_runner_retrieves_injects_and_updates_posteriors(populated_store)
     system_extra = base.calls[0]["system_extra"]
     assert "rule_pt" in system_extra
     assert "rule_exam" in system_extra
-    assert "INSTITUTIONAL REASONING MEMORY" in system_extra
+    # MemoryRunner defaults to compact_injection=True now; the compact
+    # header omits "INSTITUTIONAL" but still has the REASONING MEMORY tag.
+    assert "REASONING MEMORY" in system_extra
 
     # Posteriors updated: applied + correct → success+1, seen+1 on both
     after_pt = populated_store.get("rule_pt")

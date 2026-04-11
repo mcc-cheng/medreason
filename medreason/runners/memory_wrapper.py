@@ -88,9 +88,10 @@ class MemoryRunner:
         reranker_llm: Optional[LLMClient] = None,
         tier1_max: int = 50,
         tier2_top_k: int = 25,
-        tier3_top_k: int = 6,
+        tier3_top_k: int = 3,
         min_applicability: float = 4.0,
         allow_reprompt: bool = True,
+        compact_injection: bool = True,
     ):
         self._base = base_runner
         self._store = store
@@ -101,6 +102,7 @@ class MemoryRunner:
         self._tier3_top_k = tier3_top_k
         self._min_applicability = min_applicability
         self._allow_reprompt = allow_reprompt
+        self._compact_injection = compact_injection
 
         self.runner_id = f"{base_runner.runner_id}:memory"
         self.model_version = base_runner.model_version
@@ -146,7 +148,9 @@ class MemoryRunner:
             self.stats.total_reranker_calls += 1
 
         retrieved_ids = [r.rule_id for r in retrieval.rules]
-        injection = build_rule_checklist(retrieval.rules)
+        injection = build_rule_checklist(
+            retrieval.rules, compact=self._compact_injection
+        )
 
         # First pass
         result = self._base.run(case, seed=seed, system_extra=injection)

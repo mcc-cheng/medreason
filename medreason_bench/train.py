@@ -146,7 +146,11 @@ class TrainingConfig:
     proposer_llm: LLMClient
     store: RuleStore
     trace_store: TraceStore
-    policy: LCDPolicy
+    # When None, the proposer reads each case's policy_excerpt directly
+    # and runs in citation-wildcard mode (no structured indications/
+    # limitations to validate against). Use this for multi-policy
+    # fixtures like v0.1 adversarial.
+    policy: Optional[LCDPolicy]
     train_cases: list[BenchmarkCase]
     version: str = "v0.0"
     split: str = "train"
@@ -154,6 +158,13 @@ class TrainingConfig:
     # Gate config
     gate_k: int = 3
     gate_seed: int = 0
+    # Bypass the generalization gate entirely. Used for sparse multi-
+    # policy fixtures (v0.1 adversarial) where every case has a
+    # structurally unique trigger and the gate can't find held-out
+    # matching cases. Critic verification remains the only quality
+    # filter when this is True. Loses the "rules must generalize"
+    # signal but enables training on small heterogeneous corpora.
+    skip_gate: bool = False
 
     # Cache embeddings on promoted rules so retrieval doesn't have to
     # re-embed every inference. FakeEmbedder is fine for the cheap run.
@@ -246,14 +257,29 @@ def run_training(config: TrainingConfig) -> TrainingReport:
         report.n_traces_stored += 1
 
         # ── Stage 3: rule proposer ───────────────────────────────────────
+        # If running on a multi-policy fixture (config.policy is None),
+        # pass the case's own policy_excerpt as the source text. The
+        # proposer's citation validator becomes a wildcard in that mode
+        # — it accepts any well-formed §X.Y citation without requiring
+        # a structured policy lookup.
         report.n_proposer_invoked += 1
-        proposal = propose_rules(
-            critic_result.trace,
-            config.policy,
-            config.proposer_llm,
-            supporting_case_ids=[case.case_id],
-            seed=config.seed,
-        )
+        if config.policy is None:
+            proposal = propose_rules(
+                critic_result.trace,
+                None,
+                config.proposer_llm,
+                supporting_case_ids=[case.case_id],
+                seed=config.seed,
+                policy_excerpt_text=case.policy_excerpt,
+            )
+        else:
+            proposal = propose_rules(
+                critic_result.trace,
+                config.policy,
+                config.proposer_llm,
+                supporting_case_ids=[case.case_id],
+                seed=config.seed,
+            )
         report.cost_proposer += config.runner.estimated_cost_per_call()
         report.n_rules_proposed += proposal.n_candidates
         report.n_rules_rejected += proposal.n_rejected
@@ -273,6 +299,34 @@ def run_training(config: TrainingConfig) -> TrainingReport:
         # Held-out pool: every other train case. This is the entire
         # train split minus the current case, capped by the gate's
         # internal k-limit.
+        #
+        # When config.skip_gate is True (used for sparse multi-policy
+        # fixtures where every case has a unique trigger and the gate
+        # finds 0 matching cases), we promote every critic-verified
+        # candidate directly. Critic verification is the only quality
+        # filter in this mode.
+        if config.skip_gate:
+            for cand in proposal.candidates:
+                report.n_rules_gated += 1
+                report.gate_results.append({
+                    "rule_id": cand.rule_id,
+                    "action": cand.action[:80],
+                    "status": "active",
+                    "score": 1.0,
+                    "trials": 0,
+                    "reason": "skip_gate=True (critic-verified only)",
+                })
+                cand.status = RuleStatus.ACTIVE
+                emb = embedder.embed(_rule_repr(cand))
+                cand.trigger.semantic_embedding = emb
+                cand.trigger.embedding_model = embedder.model_id
+                config.store.put(cand)
+                report.n_rules_promoted += 1
+                _log(config.progress_hook,
+                     f"  promoted {cand.rule_id} (skip_gate, "
+                     f"critic-verified only)")
+            continue
+
         held_out = [c for c in cases if c.case_id != case.case_id]
         gate = GeneralizationGate(
             held_out,
