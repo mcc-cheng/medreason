@@ -198,6 +198,13 @@ class ClaudeRunner:
             output_per_mtok=pricing["output_per_mtok"],
         )
 
+        # Parse the applied_rules contract if the response carries one.
+        # Absence is fine — zero-shot responses will have none. The
+        # memory wrapper uses this to measure pattern utilization and
+        # decide whether to re-prompt a missing-rule_id case.
+        from ..retrieval.injector import parse_applied_rules  # noqa: PLC0415
+        applied_rules = parse_applied_rules(text)
+
         return AgentResult(
             case_id=case.case_id,
             determination=determination,
@@ -212,6 +219,7 @@ class ClaudeRunner:
             runner_id=self.runner_id,
             seed=seed,
             mode="memory" if system_extra else "zero_shot",
+            applied_rules=applied_rules,
         )
 
 

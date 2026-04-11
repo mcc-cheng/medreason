@@ -12,6 +12,7 @@ Phase 2 ships a wired ClaudeRunner and structurally complete OpenAIRunner
 from .base import AgentRunner
 from .claude import CLAUDE_PRICING, DEFAULT_CLAUDE_MODEL, ClaudeRunner
 from .gemini import GEMINI_PRICING, DEFAULT_GEMINI_MODEL, GeminiRunner
+from .memory_wrapper import MemoryRunner, MemoryRunnerStats
 from .openai import DEFAULT_OPENAI_MODEL, OPENAI_PRICING, OpenAIRunner
 from ._prompting import (
     ResponseParseError,
@@ -27,6 +28,9 @@ __all__ = [
     "ClaudeRunner",
     "OpenAIRunner",
     "GeminiRunner",
+    # Memory composition
+    "MemoryRunner",
+    "MemoryRunnerStats",
     # Pricing
     "CLAUDE_PRICING",
     "OPENAI_PRICING",

@@ -375,6 +375,43 @@ def test_claude_runner_without_api_key_raises_at_run_time():
     assert "ANTHROPIC_API_KEY" in str(exc.value) or "api_key" in str(exc.value)
 
 
+def test_claude_runner_parses_applied_rules_from_response():
+    """Phase 5: ClaudeRunner now parses an applied_rules field from
+    the response and attaches it to AgentResult.applied_rules."""
+    from medreason.runners import ClaudeRunner
+    payload = {
+        "determination": "approved",
+        "reasoning_chain": "applied rules A and B",
+        "confidence": 0.9,
+        "key_factors": ["criterion met"],
+        "applied_rules": [
+            {"rule_id": "rule_a", "applied": True, "rationale": "hit"},
+            {"rule_id": "rule_b", "applied": False, "rationale": "not relevant"},
+        ],
+    }
+    runner = ClaudeRunner(api_key="fake")
+    runner._client = _FakeClient(_FakeResponse(
+        json.dumps(payload), in_t=300, out_t=80
+    ))
+    case = make_case()
+    result = runner.run(case, system_extra="injected memory")
+    assert len(result.applied_rules) == 2
+    by_id = {a.rule_id: a for a in result.applied_rules}
+    assert by_id["rule_a"].applied is True
+    assert by_id["rule_b"].applied is False
+
+
+def test_claude_runner_missing_applied_rules_field_yields_empty_list():
+    """Zero-shot responses without applied_rules should still produce
+    a valid AgentResult with an empty applied_rules list."""
+    from medreason.runners import ClaudeRunner
+    runner = ClaudeRunner(api_key="fake")
+    runner._client = _FakeClient(_fake_response())
+    case = make_case()
+    result = runner.run(case)
+    assert result.applied_rules == []
+
+
 def test_claude_runner_fenced_json_response_parses():
     """A Claude response that wraps JSON in a ```json fence must still
     parse. This IS a failure mode of the model in practice."""
