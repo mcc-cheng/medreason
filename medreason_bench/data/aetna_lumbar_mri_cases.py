@@ -56,23 +56,33 @@ from medreason.ontology import (
 # this fixture.
 
 AETNA_CPB_0236 = """Aetna Clinical Policy Bulletin CPB-0236 — Lumbar Spine Imaging.
-§A.1 STANDARD COVERAGE: Lumbar MRI is covered after documented failure of >=6 weeks conservative therapy (physical therapy for the lumbar spine AND NSAIDs or equivalent) in a patient with lumbar radiculopathy evidenced by both pain AND objective motor or reflex changes on exam.
+§A.1 STANDARD COVERAGE: Lumbar MRI is covered after documented failure of >=6 weeks conservative therapy (physical therapy for the lumbar spine AND NSAIDs or equivalent) in a patient with lumbar radiculopathy evidenced by both pain AND objective motor or reflex changes on exam. The PT clock runs from treatment initiation date, not symptom onset date. PT course must be contiguous and substantially consistent — non-contiguous blocks with gaps or PRN-only NSAID use do not satisfy the requirement.
+§A.2 ADDITIONAL STANDALONE APPROVAL PATHS (no conservative therapy wait required):
+  - Pre-epidural injection evaluation: MRI to rule out tumor or infection and to delineate the optimal anatomical injection site
+  - Post-surgical recurrent symptoms evaluation: MRI with and without gadolinium (CPT 72158) is the preferred modality to distinguish post-operative scar from recurrent disc
+  - Severe back pain requiring hospitalization OR ED presentation requiring IV opioid analgesia (ED with IV opioids is the clinical equivalent of hospitalization-level severity for this criterion)
+  - Progressively severe symptoms despite conservative management — requires substantiation by serial quantified data (VAS score escalation, documented functional decline, emerging objective motor or reflex changes over multiple visits)
+§A.3 SPONDYLOLISTHESIS-SPECIFIC THRESHOLD: For radiographically-confirmed spondylolisthesis, the conservative therapy threshold is 4 WEEKS (not the 6-week radiculopathy threshold). PT must be contiguous without multi-week gaps; PRN-only NSAID use does not satisfy consistency. Two distinct timeline thresholds exist within §A.1 — the 6-week rule applies to radiculopathy, the 4-week rule applies to spondylolisthesis.
+§A.4 SUSPECTED INFECTIOUS PROCESS: Suspected osteomyelitis, epidural abscess, or spondylodiscitis is a standalone approval path with no conservative therapy wait. Typical trigger pattern: elevated inflammatory markers (CRP, ESR, WBC) + focal spinal percussion tenderness + high-risk host (IV drug use, immunocompromised status, recent bacteremia, post-procedural).
 §B.1 INDEPENDENT CRITERIA (no conservative therapy wait required):
-  (a) Suspected cauda equina syndrome (saddle anesthesia, bowel/bladder dysfunction, bilateral motor weakness)
-  (b) Rapidly progressing neurological deficit documented on serial exams
-  (c) Suspected vertebral, paraspinal, or intraspinal metastatic disease with supporting evidence (known primary, bone scan, labs)
+  (a) Clinical suspicion of cauda equina syndrome or spinal cord compression. Policy requires SUSPICION, not the confirmed classic triad — any combination of saddle anesthesia, bowel/bladder dysfunction, bilateral lower extremity motor weakness, or diminished perianal sensation in context of severe LBP is sufficient. Urinary retention + reduced perianal sensation alone meets suspicion threshold.
+  (b) Rapidly progressing neurological deficit, OR major motor weakness. Both prongs are independently sufficient. Rapid progression requires serial objective measurements showing deterioration — this is satisfied by documented strength decline across visits regardless of whether the words "progressive" or "rapidly" appear in the physician's language. Major motor weakness at a single time point (e.g., 0/5 dorsiflexion) is also sufficient even without temporal progression.
+  (c) Suspected vertebral, paraspinal, or intraspinal metastatic disease with supporting evidence. Evidence pattern: known primary malignancy + new back pain, OR rising tumor marker + new LBP, OR unexplained weight loss + LBP (occult primary — no prior cancer diagnosis required; "suspected" covers occult presentations).
   (d) Suspected vertebral fracture / differentiation of benign vs pathological fracture in osteoporotic patient with inconclusive plain films
   (e) Suspected lumbar epidural lipomatosis in patient on chronic systemic steroids
   (f) Suspected lumbar arachnoiditis (prior intrathecal procedures + appropriate clinical picture)
   (g) Suspected myelopathy with lumbar segment clinically implicated
-  (h) Failed back surgery syndrome with new objective neurological deficit post-operatively
+  (h) Failed back surgery syndrome with NEW objective neurological deficit post-operatively. "New" means not present on the prior post-op exam. Absence of documented deficit (asymptomatic / "no new neurological findings") does NOT trigger this criterion.
   (i) Congenital spinal anomaly / scoliosis pre-operative planning (including rule-out syrinx)
-§C.1 FREQUENCY LIMIT: Repeat lumbar MRI within 12 months of a prior study is NOT covered unless one of: new neurological deficit since prior imaging, significant clinical change, post-operative evaluation, or interval radiation therapy. Routine surveillance for chronic pain is excluded.
-§D.1 CONSERVATIVE THERAPY DEFINITION: Physical therapy must target the lumbar spine specifically. PT records for a different anatomic region (e.g., shoulder rehab) do NOT satisfy the conservative therapy prerequisite. Out-of-network PT requires documentation provided by the OON facility; patient self-report is insufficient.
+§C.1 FREQUENCY LIMIT: Repeat lumbar MRI within 12 months of a prior study is NOT covered unless one of: new neurological deficit since prior imaging, significant clinical change, post-operative evaluation, or interval radiation therapy. Routine surveillance for chronic pain is excluded. Improved or unchanged symptoms do NOT constitute clinical change. A new contralateral deficit (e.g., new right-sided findings in a patient with documented left-sided prior imaging) IS a new clinical indication.
+§D.1 CONSERVATIVE THERAPY DEFINITION (FOOTNOTE 1): The accepted forms of conservative therapy under this policy are: moderate activity modification, analgesics, NSAIDs, muscle relaxants, and supervised physical therapy targeting the lumbar spine. Acupuncture, chiropractic manipulation, yoga, and massage are NOT accepted as conservative therapy under CPB-0236 even though they may be accepted under CMS LCD or other payer policies. Physical therapy must target the lumbar spine specifically (shoulder or other regional PT does not satisfy the prerequisite). Out-of-network PT requires documentation provided by the OON facility; patient self-report is insufficient.
 §E.1 SUBJECTIVE RADICULOPATHY: Radiculopathy must be evidenced by both pain AND objective motor, sensory, or reflex changes on exam. Pain alone without objective findings does not satisfy the radiculopathy criterion.
-§F.1 AHCPR GUIDANCE: Routine imaging for acute low back pain without red-flag symptoms is not covered (AHCPR recommends against imaging in acute LBP without red flags).
+§F.1 AHCPR GUIDANCE: Routine imaging for acute low back pain without red-flag symptoms is not covered (AHCPR recommends against imaging in acute LBP without red flags). Patient preference for imaging is not a red flag and does not create medical necessity. Physician notes citing "patient insists" do not substitute for objective indication.
 §G.1 BONE-MRI EXPERIMENTAL CLAUSE: BoneMRI (MRI-based synthetic CT) is classified as experimental/investigational for spinal pre-operative assessment and surgical planning. Not covered regardless of clinical rationale.
-§H.1 APPEAL PRECEDENT: Conservative therapy shortfalls (e.g., 5 weeks when 6 are required) may be overridden on appeal if the physician documents progressing motor weakness in parallel, invoking the rapidly-progressing-deficit clause."""
+§H.1 APPEAL PRECEDENT: Conservative therapy shortfalls (e.g., 5 weeks when 6 are required) may be overridden on appeal if the physician documents progressing motor weakness in parallel, invoking the rapidly-progressing-deficit clause. This override applies only to MARGINAL shortfalls WITH parallel progressive-deficit documentation. Total absence of therapy or absent deficit documentation does not qualify.
+§I.1 COORDINATION OF BENEFITS: Aetna CPB-0236 governs as the authorization gate only when Aetna is the primary payer. When Medicare is primary per Medicare Secondary Payer rules (retirement employer with <100 employees, Medicare Advantage, etc.), CPB-0236 does not bind the authorization — Aetna follows Medicare's LCD determination as secondary. When Workers' Compensation is primary for a work-related injury, Aetna will not adjudicate authorization until the primary payer determination resolves.
+§J.1 PLAN-TYPE AND REFERRING PROVIDER: Under Aetna HMO and EPO plans, prior authorization submissions must come from an in-network referring physician — OON-physician NPI on HMO/EPO cases invalidates the PA regardless of clinical merit. Under PPO plans, out-of-network referrals are permitted. Plan-type verification must precede clinical-criteria review.
+§K.1 DOCUMENTATION AUTHENTICITY AND TEMPLATE LANGUAGE: §B.1(b) rapidly-progressing-deficit, §A.1 progressively-severe-symptoms, and red-flag checkbox criteria must be substantiated by the documented clinical data — not by physician template language. "Neurological deterioration", "red flags present", and "progressively worsening" phrasings that are not supported by serial objective measurements, quantified strength findings, or documented personal clinical red-flag history do not satisfy the criteria. Chronic stable findings re-labeled as "progressive", family history of malignancy without personal red flags, and subjective "may be progressing" speculation directly contradicted by normal exam do not qualify."""
 
 AETNA_CPB_0093 = """Aetna Clinical Policy Bulletin CPB-0093 — Alternative MRI Modalities.
 §P.1 OPEN / LOW-FIELD MRI: Covered only when a documented contraindication to closed-bore MRI exists. "Patient prefers" or "patient requests" is NOT a contraindication. Acceptable documentation includes: failed closed-bore attempt with sedation support, psychiatry confirmation of severe claustrophobia, or body habitus exceeding closed-bore weight/diameter limits.
@@ -833,6 +843,739 @@ def build_aetna_lumbar_mri_cases() -> list[BenchmarkCase]:
             "Regardless of commercial clinical merit, PA is invalid "
             "under the member's current plan type.",
             "DENY (must restart under Medicaid pathway).",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    # ═══════════════════════════════════════════════════════════════════
+    # TIER 1 — STRAIGHTFORWARD (cases 31-40)
+    # Clean standard pathways. Regressions here signal retrieval
+    # precision problems. Outcome split: 6 approve + 4 deny.
+    # ═══════════════════════════════════════════════════════════════════
+
+    cases.append(_case(
+        case_id="aetna_031",
+        icds=["M51.16"],
+        notes=(
+            "54 y/o M with right L3-L4 radiculopathy radiating to "
+            "anterior thigh. Right quad 4/5, patellar reflex 1+ "
+            "right vs 2+ left, dermatomal sensory loss along right "
+            "L3-L4. PT discharge summary documents 16 sessions over "
+            "8 weeks targeting the lumbar spine. Naproxen 500mg BID "
+            "continuously for 8 weeks, no meaningful improvement."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§A.1 standard path — all three elements present.",
+            "Radiculopathy + objective motor/reflex findings + "
+            "8 weeks contiguous conservative therapy.",
+            "§D.1 Footnote 1 satisfied by PT + NSAIDs.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.EASY,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_032",
+        icds=["M54.9"],
+        notes=(
+            "33 y/o F with 2-week LBP after moving furniture. Normal "
+            "neuro exam (5/5 bilateral, 2+ symmetric reflexes, "
+            "negative SLR). No PT, no medications. Physician note: "
+            "'Patient requests MRI to rule out a slipped disc.'"
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.DENIED,
+        denial_reason=DenialReason.MEDICAL_NECESSITY,
+        reasoning=[
+            "§F.1 AHCPR guidance: no imaging for acute LBP without "
+            "red flags.",
+            "Zero conservative therapy, normal exam, no objective "
+            "findings, no red flags.",
+            "Patient preference does not create medical necessity.",
+            "DENY.",
+        ],
+        difficulty=Difficulty.EASY,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_033",
+        icds=["M51.17"],
+        notes=(
+            "61 y/o F with left S1 radiculopathy x12 weeks. Plantar "
+            "flexion 3/5 left (unable to perform single heel raise). "
+            "Achilles reflex absent left, 2+ right. Lateral foot "
+            "sensory loss. 12 weeks PT (3x/week), ibuprofen 800mg "
+            "TID continuously, AND 18 chiropractic sessions — all "
+            "failed. PA form lists: PT, NSAIDs, chiropractic."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§A.1 standard path — criteria met by PT + NSAIDs alone.",
+            "§D.1: chiropractic is NOT in Footnote 1 but its presence "
+            "does NOT disqualify otherwise-sufficient PT + NSAIDs.",
+            "Radiculopathy + objective motor/reflex findings + "
+            "12 weeks PT + NSAIDs.",
+            "APPROVE (chiropractic is incidental, not disqualifying).",
+        ],
+        difficulty=Difficulty.MEDIUM,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_034",
+        icds=["M54.9"],
+        notes=(
+            "41 y/o M with 4-month intermittent LBP 3/10 after desk "
+            "work. Full ROM, normal neuro exam. 3 sessions of yoga "
+            "(patient-initiated). Physician note: 'Patient counseled "
+            "but insists on MRI.'"
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.DENIED,
+        denial_reason=DenialReason.MEDICAL_NECESSITY,
+        reasoning=[
+            "§D.1: yoga is NOT in Footnote 1 conservative therapy list.",
+            "§A.1 conservative therapy prerequisite unmet.",
+            "Normal exam, no objective findings, no red flags.",
+            "§F.1 patient insistence is not medical necessity.",
+            "DENY.",
+        ],
+        difficulty=Difficulty.EASY,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_035",
+        icds=["M43.16"],
+        notes=(
+            "48 y/o M with Grade I L4-L5 spondylolisthesis confirmed "
+            "on X-ray. PT for 3 weeks, then a 2-week gap, then "
+            "resumed for 2 more weeks. NSAIDs used PRN only ('when "
+            "it gets bad'). No radiculopathy. Surgical planning "
+            "requested."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.DENIED,
+        denial_reason=DenialReason.MEDICAL_NECESSITY,
+        reasoning=[
+            "§A.3 spondylolisthesis threshold is 4 weeks CONTIGUOUS.",
+            "PT here is non-contiguous (3 + gap + 2), not consistent.",
+            "NSAIDs are PRN-only, not consistent use.",
+            "§A.3 consistency requirement unmet.",
+            "DENY.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_036",
+        icds=["M43.16"],
+        notes=(
+            "52 y/o F with X-ray confirmed Grade II L5-S1 "
+            "spondylolisthesis. PT 3x/week for 4 consecutive weeks. "
+            "Naproxen 500mg BID daily for 4 weeks. No improvement, "
+            "ADLs limited. No radiculopathy."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§A.3 spondylolisthesis-specific 4-week threshold "
+            "(NOT the 6-week radiculopathy threshold).",
+            "PT contiguous 4 weeks + daily NSAIDs satisfies §A.3 "
+            "consistency requirement.",
+            "Two distinct thresholds exist within §A.1 — applying "
+            "the 6-week rule here is incorrect.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_037",
+        icds=["M51.16"],
+        notes=(
+            "67 y/o M with known L4-L5 disc herniation, scheduled "
+            "for lumbar epidural steroid injection next week. Pain "
+            "management physician requests MRI to rule out tumor or "
+            "infection and to delineate optimal injection site. No "
+            "prior conservative therapy documented for this visit."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§A.2 pre-epidural injection evaluation is a standalone "
+            "path — no conservative therapy wait applies.",
+            "Rule out tumor/infection + injection site planning.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.MEDIUM,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_038",
+        cpt="72158",
+        icds=["M96.1"],
+        notes=(
+            "58 y/o M, 9 months post-L5-S1 microdiscectomy. Initially "
+            "improved, now with recurrent left S1 radiculopathy. "
+            "Diminished Achilles reflex left, plantar flexion 4/5 "
+            "left, SLR positive left 50 degrees. Surgeon requests "
+            "MRI with and without gadolinium to distinguish "
+            "post-operative scar from recurrent disc."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§A.2 post-surgical recurrent-symptoms evaluation — "
+            "CPT 72158 (with and without contrast) is the "
+            "preferred modality.",
+            "No conservative therapy re-required for post-surgical "
+            "evaluation.",
+            "§B.1(h) new objective deficit also supports approval.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.MEDIUM,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_039",
+        icds=["M46.26"],
+        notes=(
+            "62 y/o F, IV drug user, 10-day progressive LBP, fever "
+            "38.9°C, CRP 184 mg/L, ESR 112 mm/hr, midline percussion "
+            "tenderness at L3-L4. No conservative therapy. Neuro "
+            "exam intact."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§A.4 suspected infectious process — standalone approval.",
+            "Pattern: elevated inflammatory markers + focal "
+            "tenderness + high-risk host (IVDU).",
+            "No conservative therapy wait applies to red flag "
+            "infectious presentations.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.MEDIUM,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_040",
+        icds=["M51.16"],
+        notes=(
+            "55 y/o M, MRI 7 months ago showed L4-L5 herniation. "
+            "PT completed post-MRI, symptoms improved significantly, "
+            "pain now 1-2/10. SLR negative, motor 5/5, reflexes "
+            "symmetric. Physician orders 'routine follow-up MRI.'"
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.DENIED,
+        denial_reason=DenialReason.FREQUENCY_LIMIT,
+        reasoning=[
+            "§C.1 frequency limit: repeat MRI within 12 months.",
+            "Improved symptoms and normal exam is NOT clinical "
+            "change for §C.1 purposes — routine surveillance.",
+            "No active criterion met.",
+            "DENY.",
+        ],
+        difficulty=Difficulty.MEDIUM,
+    ))
+
+    # ═══════════════════════════════════════════════════════════════════
+    # TIER 2 — EXCEPTION CASES (cases 41-52)
+    # §B.1 override pattern generalization across sub-criteria.
+    # Outcome split: 10 approve + 2 deny.
+    # ═══════════════════════════════════════════════════════════════════
+
+    cases.append(_case(
+        case_id="aetna_041",
+        icds=["M51.16"],
+        notes=(
+            "59 y/o M with right foot drop developing rapidly. Ankle "
+            "dorsiflexion declined from partial weakness to 0/5 "
+            "(complete foot drop) over 7 days. Right EHL 1/5. "
+            "Steppage gait. PT started 2 weeks ago for LBP."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§B.1(b) — 0/5 dorsiflexion = major motor weakness.",
+            "AND actively progressing over 7 days = rapid progression.",
+            "Both prongs independently present.",
+            "§A.1 6-week wait overridden; only 2 weeks PT irrelevant.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.MEDIUM,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_042",
+        icds=["G83.4"],
+        notes=(
+            "47 y/o F with 4-day progressive LBP with new urinary "
+            "hesitancy and two episodes of urinary retention "
+            "requiring self-catheterization. Perianal sensation "
+            "diminished on exam (not spontaneously reported by "
+            "patient). Bilateral LE strength 5/5. No saddle "
+            "anesthesia volunteered."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§B.1(a) requires SUSPICION, not the confirmed classic "
+            "triad.",
+            "Urinary retention + reduced perianal sensation + "
+            "severe LBP = sufficient clinical suspicion.",
+            "Policy language is broader than 'saddle anesthesia'.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_043",
+        icds=["G83.4"],
+        notes=(
+            "55 y/o M with severe LBP x5 days. Bilateral hip/knee/"
+            "ankle weakness developing over 48 hours (bilateral "
+            "3-4/5). Bilateral Achilles reflexes diminished from "
+            "prior documented baseline (2+ → 1+). No bladder "
+            "symptoms reported yet. SLR positive bilaterally."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "Dual trigger: §B.1(a) suspicion of cauda equina "
+            "(bladder involvement may not yet be apparent).",
+            "AND §B.1(b) rapidly progressing bilateral deficit.",
+            "Waiting for explicit bladder symptoms = harmful delay.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_044",
+        icds=["M51.16"],
+        notes=(
+            "63 y/o F with 1-week right leg weakness. Physician "
+            "writes: 'Rapidly progressive right lower extremity "
+            "weakness — strength declined from 4/5 to 2/5 over past "
+            "5 days per serial exams across 3 visits this week.' "
+            "Serial exam data: hip flexion 4/5 → 2/5, knee extension "
+            "4/5 → 3/5, ankle dorsiflexion 4/5 → 2/5 over 5 days."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§B.1(b) rapidly progressing neurological deficit.",
+            "Explicit physician attestation + quantified serial "
+            "strength decline.",
+            "§K.1 substantiation: serial data supports the claim.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.MEDIUM,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_045",
+        icds=["M51.16"],
+        notes=(
+            "57 y/o M. Visit 1 (14 days ago): tibialis anterior 5/5, "
+            "EHL 5/5, SLR at 60°, Achilles 2+. Visit 2 (today): "
+            "tibialis anterior 1/5, EHL 2/5, foot drop emerging, "
+            "Achilles 1+. Physician writes: 'Given worsening, "
+            "imaging indicated.' Physician does not use the words "
+            "'progressing' or 'rapidly'."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§B.1(b) rapid progression — serial measurements show "
+            "5/5 → 1/5 tibialis anterior over 14 days.",
+            "§K.1: rule applies to CLINICAL DATA, not keywords. "
+            "Absence of the word 'progressing' is irrelevant.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_046",
+        icds=["C79.51"],
+        notes=(
+            "66 y/o M, 'routine follow-up' visit. Chief complaint: "
+            "'back hurts more lately, maybe from sleeping wrong.' "
+            "PMH buried in EMR: prostate cancer x3 years on "
+            "enzalutamide. PSA elevated from 0.3 → 8.4 over 6 months "
+            "per oncology note. New-onset LBP x3 weeks. No "
+            "radiculopathy. Physician assessment: 'LBP, possible "
+            "musculoskeletal. MRI to evaluate.'"
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§B.1(c) suspected vertebral metastases.",
+            "Known primary + rising tumor marker + new back pain.",
+            "Physician's understated framing doesn't negate facts.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_047",
+        icds=["M46.26"],
+        notes=(
+            "44 y/o M, 'routine LBP visit'. PMH: kidney transplant "
+            "on tacrolimus + mycophenolate. Temperature 37.9°C. "
+            "Point tenderness over L3 spinous process. CRP 42, "
+            "WBC 11.2. Physician's plan: 'Naproxen + PT.' MRI "
+            "requested after NP flags immunosuppressed status + "
+            "fever in chart review."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§A.4 suspected infectious spondylodiscitis.",
+            "Immunocompromised + fever + focal tenderness + "
+            "elevated markers = mandatory imaging.",
+            "Red flag in PMH, not surfaced in assessment — but "
+            "clinically decisive.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_048",
+        icds=["C79.51"],
+        notes=(
+            "71 y/o F with 6-week mid/low back pain. Unintentional "
+            "14-lb weight loss over 3 months (chart confirmed: "
+            "132 lbs → 118 lbs). No known malignancy. No other "
+            "constitutional symptoms. Normal neuro exam."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§B.1(c) suspected vertebral metastases (occult primary).",
+            "Known cancer is NOT required — 'suspected' covers "
+            "occult presentations with weight loss red flag.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_049",
+        icds=["M54.16"],
+        notes=(
+            "49 y/o M with 5-week LBP and intermittent right leg "
+            "numbness ('comes and goes, a few minutes daily'). "
+            "4 weeks PT, ibuprofen PRN. Neuro exam fully normal: "
+            "5/5 bilaterally, 2+ symmetric reflexes, SLR negative. "
+            "Physician writes: 'Patient has intermittent "
+            "neurological symptoms that may be progressing.'"
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.DENIED,
+        denial_reason=DenialReason.MEDICAL_NECESSITY,
+        reasoning=[
+            "§B.1(b) NOT triggered — exam is fully normal.",
+            "§K.1: 'may be progressing' is speculative, directly "
+            "contradicted by normal exam.",
+            "§A.1 not met (4 weeks PT, PRN NSAIDs).",
+            "DENY.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_050",
+        icds=["M51.16"],
+        notes=(
+            "64 y/o F with chronic L4-L5 radiculopathy. Right quad "
+            "weakness at 4/5 STABLE for 8 months across 3 documented "
+            "visits. Today: right quad 4/5 (unchanged). Patellar "
+            "reflex 1+ right (chronic, present since first visit). "
+            "5 weeks PT + NSAIDs. PA form checkbox: 'Major motor "
+            "weakness.'"
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.DENIED,
+        denial_reason=DenialReason.MEDICAL_NECESSITY,
+        reasoning=[
+            "§B.1(b) requires RAPID progression.",
+            "§K.1: 8-month stable weakness doesn't meet 'rapidly "
+            "progressing' regardless of checkbox label.",
+            "§A.1 at 5 weeks — one more week completes conservative "
+            "therapy. Peer-to-peer recommended.",
+            "DENY (as submitted).",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_051",
+        icds=["M54.59"],
+        notes=(
+            "58 y/o M in ED with acute LBP 10/10, unable to "
+            "ambulate. IV morphine 8mg administered. ED physician: "
+            "'Severe acute LBP requiring IV opioid analgesia and "
+            "observation.' No radiculopathy. No prior conservative "
+            "therapy."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§A.2 severe back pain requiring hospitalization OR ED "
+            "with IV opioid analgesia.",
+            "ED + IV opioids is the clinical equivalent of "
+            "hospitalization-level severity.",
+            "No conservative therapy wait applies.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_052",
+        icds=["M54.16"],
+        notes=(
+            "53 y/o F with 10 weeks LBP + right L5 radiculopathy. "
+            "8 weeks PT + naproxen BID. Serial VAS documented: "
+            "Week 1: 5/10 → Week 3: 6/10 → Week 5: 7/10 → Week 8: "
+            "8/10. Functional decline documented at each visit — "
+            "now unable to dress independently. Right EHL 4/5 at "
+            "Week 8 (was 5/5 at Week 1). Right Achilles 1+ "
+            "developing (was 2+ at Week 1)."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§A.2 progressively severe symptoms despite conservative "
+            "management.",
+            "§K.1 substantiation: quantified VAS escalation + "
+            "functional decline + emerging motor/reflex changes.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.MEDIUM,
+    ))
+
+    # ═══════════════════════════════════════════════════════════════════
+    # TIER 3 — ADVERSARIAL (cases 53-60)
+    # Operational footnotes that zero-shot and sparse-RAG miss.
+    # Outcome split: 2 approve + 6 deny.
+    # ═══════════════════════════════════════════════════════════════════
+
+    cases.append(_case(
+        case_id="aetna_053",
+        icds=["M51.16"],
+        notes=(
+            "46 y/o F with 8-week LBP and right L4 radiculopathy. "
+            "Patellar reflex 1+ right vs 2+ left, right quad 4/5. "
+            "Completed 16 sessions of acupuncture (8 weeks, 2x/week). "
+            "No PT, no NSAIDs (patient declines due to GI history), "
+            "no muscle relaxants. PA form states: '8 weeks "
+            "conservative therapy — acupuncture.'"
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.DENIED,
+        denial_reason=DenialReason.MEDICAL_NECESSITY,
+        reasoning=[
+            "§D.1 Footnote 1: acupuncture is NOT in the accepted "
+            "conservative therapy list (PT, NSAIDs, analgesics, "
+            "muscle relaxants, activity modification).",
+            "Aetna-specific footnote overrides general clinical "
+            "convention regardless of other payer policies.",
+            "§A.1 conservative therapy prerequisite unmet.",
+            "DENY.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_054",
+        icds=["M51.16"],
+        notes=(
+            "50 y/o M with LBP + left L5 radiculopathy. Symptoms "
+            "began 10 weeks ago. Patient did not seek treatment "
+            "until 4 weeks ago. PT started 4 weeks ago (8 sessions "
+            "completed). Naproxen not mentioned. Physician note: "
+            "'Patient has had symptoms for 10 weeks, which exceeds "
+            "the 6-week conservative therapy threshold.'"
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.DENIED,
+        denial_reason=DenialReason.MEDICAL_NECESSITY,
+        reasoning=[
+            "§A.1 PT clock runs from treatment initiation, not "
+            "symptom onset.",
+            "Active PT = 4 weeks only (not 10).",
+            "NSAIDs undocumented.",
+            "Physician's conflation of symptom duration with "
+            "therapy duration is incorrect.",
+            "DENY.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_055",
+        icds=["M51.16"],
+        notes=(
+            "57 y/o M with prior lumbar MRI 9 months ago (correctly "
+            "approved) showing L4-L5 herniation with left L5 "
+            "radiculopathy. Today: same symptoms, same severity, "
+            "same distribution. Neuro exam identical to 9-month-ago "
+            "visit: left EHL 4/5, left patellar reflex 1+, SLR "
+            "positive left 45° — all unchanged. Physician writes: "
+            "'Repeat MRI to reassess disc herniation.'"
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.DENIED,
+        denial_reason=DenialReason.FREQUENCY_LIMIT,
+        reasoning=[
+            "§C.1 repeat MRI within 12 months requires documented "
+            "clinical change.",
+            "Exam findings documented as identical to prior visit — "
+            "no clinical change.",
+            "'Reassessment' without new indication is not covered.",
+            "DENY.",
+        ],
+        difficulty=Difficulty.MEDIUM,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_056",
+        icds=["M51.16"],
+        notes=(
+            "57 y/o M, 11 months after prior MRI. New symptom: "
+            "right leg weakness developed 2 weeks ago — "
+            "contralateral to prior left L5 findings. Right "
+            "tibialis anterior 3/5 (previously 5/5 on all prior "
+            "visits). Right SLR positive 40° (new). Left findings "
+            "unchanged. Physician: 'New right-sided radiculopathy "
+            "with motor deficit — clinically distinct from prior "
+            "presentation.'"
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§C.1 new contralateral objective finding = documented "
+            "clinical change = new independent indication.",
+            "Paired with aetna_055 to isolate the clinical-change "
+            "variable.",
+            "APPROVE.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_057",
+        icds=["M51.16"],
+        notes=(
+            "52 y/o F. All medical necessity criteria met per "
+            "CPB-0236 (7 weeks PT, NSAIDs, right L5 radiculopathy "
+            "with objective findings). Referring physician is "
+            "out-of-network. Imaging facility is in-network. PA "
+            "submitted under OON physician's NPI. Member is on "
+            "Aetna HMO plan."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.DENIED,
+        denial_reason=DenialReason.CODING_ERROR,
+        reasoning=[
+            "§J.1 under Aetna HMO/EPO, OON referring physician "
+            "invalidates the PA regardless of clinical merit.",
+            "Plan-type verification precedes clinical-criteria "
+            "review.",
+            "Medical necessity is unambiguously satisfied — "
+            "irrelevant under the structural issue.",
+            "DENY (must resubmit via in-network physician).",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_058",
+        icds=["M51.16"],
+        notes=(
+            "68 y/o M, Medicare-eligible (Part B), Aetna commercial "
+            "supplemental through retirement employer (fewer than "
+            "100 employees — Medicare is primary per MSP rules). "
+            "Classic L4-L5 radiculopathy, 7 weeks PT, NSAIDs, "
+            "objective findings. Meets both Medicare LCD and Aetna "
+            "CPB-0236. PA submitted to Aetna."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.APPROVED,
+        reasoning=[
+            "§I.1 COB: Medicare is primary per MSP rules.",
+            "Aetna as secondary follows Medicare's LCD.",
+            "Both Medicare LCD and CPB-0236 criteria clinically met.",
+            "APPROVE (Aetna does not gate as secondary; if Aetna "
+            "must respond it cannot deny when clinical criteria "
+            "are met and Medicare approves).",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_059",
+        icds=["M51.16"],
+        notes=(
+            "61 y/o F with chronic L5-S1 disc herniation and left "
+            "S1 radiculopathy x3 years. Left Achilles reflex absent "
+            "for 3+ years (confirmed in all prior notes — "
+            "unchanged). Left plantar flexion 4/5 — identical to "
+            "all prior visits. Today's physician note: 'Patient "
+            "continues to demonstrate neurological deterioration "
+            "consistent with chronic L5-S1 radiculopathy.' 4 weeks "
+            "PT this episode. PA form cites 'neurological "
+            "deterioration' as the §B.1(b) trigger."
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.DENIED,
+        denial_reason=DenialReason.MEDICAL_NECESSITY,
+        reasoning=[
+            "§K.1 template language vs clinical data: 'neurological "
+            "deterioration' phrasing directly contradicted by "
+            "3-year-stable findings.",
+            "§B.1(b) requires rapid progression. Stable chronic "
+            "deficit does not qualify.",
+            "§A.1 unmet (4 weeks PT).",
+            "DENY.",
+        ],
+        difficulty=Difficulty.HARD,
+    ))
+
+    cases.append(_case(
+        case_id="aetna_060",
+        icds=["M54.16"],
+        notes=(
+            "48 y/o F with 5-week LBP + left L4 radiculopathy. "
+            "Left patellar reflex 1+ right 2+, left quad 4/5. "
+            "4 weeks PT + naproxen. PA form: 'Red flags present' "
+            "checkbox CHECKED. Physician note: 'Red flags: "
+            "positive family history of colon cancer (mother, age "
+            "72). Patient has no personal history of malignancy. "
+            "No weight loss, no fever, no night sweats, no "
+            "constitutional symptoms.'"
+        ),
+        policy=AETNA_CPB_0236,
+        outcome=Outcome.DENIED,
+        denial_reason=DenialReason.MEDICAL_NECESSITY,
+        reasoning=[
+            "§K.1 checkbox requires substantiating personal "
+            "clinical red-flag findings.",
+            "Family history of cancer is not a personal red flag.",
+            "No personal weight loss, fever, immunosuppression, "
+            "IVDU, or known malignancy.",
+            "§A.1 also unmet (4 weeks PT).",
+            "DENY.",
         ],
         difficulty=Difficulty.HARD,
     ))

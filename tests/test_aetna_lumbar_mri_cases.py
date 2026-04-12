@@ -8,9 +8,9 @@ from medreason.ontology import Outcome, Payer
 from medreason_bench.data.aetna_lumbar_mri_cases import build_aetna_lumbar_mri_cases
 
 
-def test_fixture_has_30_cases():
+def test_fixture_has_60_cases():
     cases = build_aetna_lumbar_mri_cases()
-    assert len(cases) == 30
+    assert len(cases) == 60
 
 
 def test_all_cases_are_aetna():
@@ -29,11 +29,11 @@ def test_case_ids_are_unique():
 
 
 def test_outcome_distribution_matches_design():
-    """12 approved + 18 denied per the fixture spec."""
+    """60-case balanced fixture: 30 approved + 30 denied."""
     cases = build_aetna_lumbar_mri_cases()
     counts = Counter(c.ground_truth_outcome.value for c in cases)
-    assert counts["approved"] == 12
-    assert counts["denied"] == 18
+    assert counts["approved"] == 30
+    assert counts["denied"] == 30
     assert counts.get("overturned_on_appeal", 0) == 0
 
 
