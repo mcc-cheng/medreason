@@ -240,12 +240,17 @@ def _build_rule_from_candidate(
     supporting_case_ids: list[str],
     proposer_model: str,
     proposer_run_id: str,
+    action_max_words: int = ACTION_MAX_WORDS,
 ) -> ReasoningRule:
     """Validate a single candidate dict and build a ReasoningRule.
 
     Raises ValueError (or a subclass) with a specific reason on any
     validation failure. Callers catch the exception and add
     (candidate, reason) to ProposalResult.rejected.
+
+    `action_max_words` lets callers relax the word cap for
+    metacognitive rules (which are slightly longer because they
+    encode both the default reasoning pattern and the override).
     """
     trigger_data = cand.get("trigger") or {}
     if not isinstance(trigger_data, dict):
@@ -280,9 +285,9 @@ def _build_rule_from_candidate(
     action = str(cand.get("action", "")).strip()
     if not action:
         raise ValueError("action is empty")
-    if _count_words(action) > ACTION_MAX_WORDS:
+    if _count_words(action) > action_max_words:
         raise ValueError(
-            f"action exceeds {ACTION_MAX_WORDS}-word limit "
+            f"action exceeds {action_max_words}-word limit "
             f"({_count_words(action)} words)"
         )
 
@@ -346,6 +351,8 @@ def propose_rules(
     max_tokens: int = 2048,
     seed: int = 0,
     policy_excerpt_text: Optional[str] = None,
+    prompt_file: str = PROPOSER_PROMPT_FILE,
+    action_max_words: int = ACTION_MAX_WORDS,
 ) -> ProposalResult:
     """Ask the proposer LLM for candidate rules and validate them.
 
@@ -371,7 +378,7 @@ def propose_rules(
     store.put() time, but this is the earliest layer where we can guard
     the invariant.
     """
-    system_prompt = load_prompt(PROPOSER_PROMPT_FILE)
+    system_prompt = load_prompt(prompt_file)
 
     # User message — structured, no agent reasoning included.
     user_parts = [
@@ -456,6 +463,7 @@ def propose_rules(
                 supporting_case_ids=supporting_case_ids,
                 proposer_model=proposer_model,
                 proposer_run_id=run_id,
+                action_max_words=action_max_words,
             )
         except (
             PolicyCitationError,

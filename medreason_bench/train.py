@@ -218,6 +218,18 @@ class TrainingConfig:
     # corroboration (Phase 7 concern).
     failure_analyzer_llm: Optional[LLMClient] = None
 
+    # Metacognitive rule proposer switch. When True, the rule_proposer
+    # uses medreason/prompts/metacognitive_rule_proposer.txt instead
+    # of the default prompt, emitting PROTECT-THE-DEFAULT /
+    # OVERRIDE-THE-DEFAULT style rules that describe the AI's default
+    # reasoning pattern + the specific override/protection. This is
+    # the v0.3 experiment hypothesis: metacognitive rules transfer
+    # better than additive checks because they tell future retrievals
+    # how the AI fails, not just what the policy says. Relaxes the
+    # action word cap to 30 words (metacognitive rules need both the
+    # default and the override in one sentence).
+    use_metacognitive_proposer: bool = False
+
 
 # ── The training loop ──────────────────────────────────────────────────────
 
@@ -307,6 +319,17 @@ def run_training(config: TrainingConfig) -> TrainingReport:
             # mode — it accepts any well-formed §X.Y citation without
             # requiring a structured policy lookup.
             report.n_proposer_invoked += 1
+            # Metacognitive mode: swap the prompt file and relax the
+            # action word cap so rules can encode both the default
+            # reasoning and the override in one sentence.
+            proposer_prompt = (
+                "metacognitive_rule_proposer.txt"
+                if config.use_metacognitive_proposer
+                else "rule_proposer.txt"
+            )
+            proposer_action_max_words = (
+                30 if config.use_metacognitive_proposer else 25
+            )
             if config.policy is None:
                 proposal = propose_rules(
                     critic_result.trace,
@@ -315,6 +338,8 @@ def run_training(config: TrainingConfig) -> TrainingReport:
                     supporting_case_ids=[case.case_id],
                     seed=config.seed,
                     policy_excerpt_text=case.policy_excerpt,
+                    prompt_file=proposer_prompt,
+                    action_max_words=proposer_action_max_words,
                 )
             else:
                 proposal = propose_rules(
@@ -323,6 +348,8 @@ def run_training(config: TrainingConfig) -> TrainingReport:
                     config.proposer_llm,
                     supporting_case_ids=[case.case_id],
                     seed=config.seed,
+                    prompt_file=proposer_prompt,
+                    action_max_words=proposer_action_max_words,
                 )
             report.cost_proposer += config.runner.estimated_cost_per_call()
             report.n_rules_proposed += proposal.n_candidates

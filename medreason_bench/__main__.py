@@ -23,6 +23,7 @@ from pathlib import Path
 
 from .data import parse_lcd_xml
 from .data.adversarial_cases import build_adversarial_cases
+from .data.aetna_lumbar_mri_cases import build_aetna_lumbar_mri_cases
 from .data.case_builder import build_cases_from_lcd
 from .data.lcd_edge_cases import build_lcd_edge_cases
 from .eval.harness import EvalConfig, run_eval
@@ -83,10 +84,13 @@ def _cmd_data_build(args: argparse.Namespace) -> int:
         print(f"[data build] using LCD edge-case fixture (xlsx-derived)")
         cases = build_lcd_edge_cases()
         print(f"  loaded {len(cases)} LCD edge cases")
+    elif args.source == "aetna_lumbar":
+        print(f"[data build] using Aetna lumbar MRI within-domain fixture (30 cases)")
+        cases = build_aetna_lumbar_mri_cases()
+        print(f"  loaded {len(cases)} Aetna lumbar MRI cases")
     elif args.source == "combined":
         print(f"[data build] combining v0.1 adversarial + LCD edge fixture")
         cases = build_adversarial_cases() + build_lcd_edge_cases()
-        from collections import Counter
         oc = Counter(c.ground_truth_outcome.value for c in cases)
         print(f"  loaded {len(cases)} cases  (combined)")
         print(f"  outcomes: {dict(oc)}")
@@ -452,10 +456,12 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     data_build.add_argument(
         "--source", type=str, default="lcd",
-        choices=["lcd", "adversarial", "lcd_edge", "combined"],
+        choices=["lcd", "adversarial", "lcd_edge", "aetna_lumbar", "combined"],
         help="Case source: 'lcd' (template-expanded from an LCD XML, "
              "default), 'adversarial' (v0.1 hand-authored fixture), "
-             "'lcd_edge' (xlsx-derived 30 LCD edge cases), or "
+             "'lcd_edge' (xlsx-derived 30 LCD edge cases), "
+             "'aetna_lumbar' (v0.3 within-domain Aetna lumbar MRI "
+             "fixture, 30 hand-authored cases), or "
              "'combined' (v0.1 adversarial + xlsx LCD edge — 50 cases "
              "with balanced approve/deny ratio)",
     )
