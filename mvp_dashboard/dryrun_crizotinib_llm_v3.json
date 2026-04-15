@@ -1,0 +1,1165 @@
+{
+  "campaign_id": "crizotinib_chembl_dryrun",
+  "n_decision_points": 4,
+  "seeds": [
+    11,
+    17,
+    23,
+    31,
+    41,
+    53,
+    67
+  ],
+  "agent": "llm",
+  "top1_memoff_rates": [
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5
+  ],
+  "top1_memon_rates": [
+    1.0,
+    0.5,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    0.5
+  ],
+  "top1_lift_pp": 35.714285714285715,
+  "top1_lift_ci_90_lo": 21.428571428571427,
+  "top1_lift_ci_90_hi": 50.0,
+  "cw_memoff_rates": [
+    0.6666666666666666,
+    0.6666666666666666,
+    0.6666666666666666,
+    0.3333333333333333,
+    0.6666666666666666,
+    0.6666666666666666,
+    0.6666666666666666
+  ],
+  "cw_memon_rates": [
+    0.3333333333333333,
+    0.6666666666666666,
+    0.3333333333333333,
+    0.3333333333333333,
+    0.3333333333333333,
+    0.3333333333333333,
+    0.3333333333333333
+  ],
+  "cw_lift_pp": -23.809523809523807,
+  "gate_passed": true,
+  "gate_reason": "Lift 35.71pp with 90% CI [21.43, 50.00]pp on 4 DPs. GATE PASSED.",
+  "total_cost_usd": 0.27755199999999997,
+  "runs": [
+    {
+      "seed": 11,
+      "memory": false,
+      "top1_hits": 2,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL270548",
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL449757"
+          ],
+          "rationale": "All round 1 compounds show IC50 of 1000 nM (unacceptable potency); round 2 candidates show 3-fold improvement to 300 nM but still well above the typical target of <100 nM, making on-target potency the dominant bottleneck."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL573761",
+            "CHEMBL400332"
+          ],
+          "rationale": "Potency has improved dramatically (IC50 now 30 nM across candidates vs. 300 nM in round 2), selectivity ratios are acceptable (2.5\u20136.2), but all candidates show elevated hepatic clearance (CLint 144\u2013177 \u00b5L/min/mg, 2.8\u20133.5\u00d7 the best round-2 compounds), which is now the primary bottleneck blocking clinical progression."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1644799",
+            "CHEMBL454101",
+            "CHEMBL558306",
+            "CHEMBL505896",
+            "CHEMBL1270399"
+          ],
+          "rationale": "Potency is solved (all candidates at 10 nM, goal achieved), selectivity is acceptable (all >19.9x), but ADMET is now the critical bottleneck: two compounds show CYP3A4 TDI flags and most show elevated CLint (>150 \u00b5L/min/mg), requiring metabolism optimization before further advancement."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1802835",
+            "CHEMBL462622",
+            "CHEMBL497118",
+            "CHEMBL494985",
+            "CHEMBL601719"
+          ],
+          "rationale": "Potency is solved (all round 5 candidates at 1\u20138 nM IC50); selectivity is acceptable (25\u201360x ratios); but ADMET is the critical bottleneck\u2014recent round 4 compounds with 10 nM potency failed due to high CLint (150\u2013185 \u03bcL/min/mg) and CYP3A4 TDI, so round 5 must prioritize compounds with lowest CLint (<31 \u03bcL/min/mg) and no TDI flag to avoid repeating ADMET failures."
+        }
+      ],
+      "cost_usd": 0.01908
+    },
+    {
+      "seed": 11,
+      "memory": true,
+      "top1_hits": 4,
+      "top1_total": 4,
+      "cycle_waste_correct": 1,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL270548",
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL449757"
+          ],
+          "rationale": "Potency remains the primary bottleneck (best IC50=1000 nM vs. target <100 nM in round 1; candidates show 300 nM, a 3-fold improvement but still insufficient); selectivity is secondary (best ratio 6.4x vs. target >10x) and ADMET is acceptable (hERG and CLint within acceptable ranges for progression)."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL254280",
+            "CHEMBL255092",
+            "CHEMBL453849",
+            "CHEMBL573761",
+            "CHEMBL400332"
+          ],
+          "rationale": "Potency remains the critical bottleneck: best IC50 is 30 nM in round 3 candidates (vs. 300 nM in round 2), finally approaching the <100 nM target; selectivity is secondary but concerning at 2.5\u20136.2x and must be monitored; ADMET shows emerging CLint liabilities (144\u2013177 \u03bcL/min/mg) that will require attention once potency reaches target, but is not yet the primary blocker."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "selectivity",
+            "ADMET",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL454101",
+            "CHEMBL1644799",
+            "CHEMBL1270399",
+            "CHEMBL505896",
+            "CHEMBL558306"
+          ],
+          "rationale": "Potency is now solved (all candidates at 10 nM IC50, far below 100 nM target); selectivity remains the primary bottleneck with best prior ratio of 7.7x still short of the >10x target, and four of six new candidates exceed 19.9x selectivity, offering the highest leverage for immediate advancement."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL462622",
+            "CHEMBL494985",
+            "CHEMBL497118",
+            "CHEMBL601719",
+            "CHEMBL1802835"
+          ],
+          "rationale": "Potency (1\u20138 nM) and selectivity (25\u201360x) are both solved; ADMET is now the bottleneck\u2014CLint values (24.8\u201330.8 \u03bcL/min/mg) remain elevated and hERG IC50s are suboptimal (18\u201354 \u03bcM), requiring metabolic stability and cardiac safety optimization before further progression."
+        }
+      ],
+      "cost_usd": 0.020503
+    },
+    {
+      "seed": 17,
+      "memory": false,
+      "top1_hits": 2,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL270548",
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL449757"
+          ],
+          "rationale": "All round 1 compounds show IC50 = 1000 nM (weak potency) with modest selectivity ratios (2.2\u20136.4); the candidate pool shows 3-fold improvement to IC50 = 300 nM but potency remains the primary bottleneck, requiring continued optimization before ADMET becomes limiting."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL400332",
+            "CHEMBL573761"
+          ],
+          "rationale": "Potency has been solved (IC50 30 nM across all candidates), selectivity is acceptable (5.8\u20136.2 for best compounds), but high intrinsic clearance (144\u2013177 \u00b5L/min/mg) is now the dominant bottleneck blocking progression; prioritize compounds with lower CLint and acceptable permeability."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1644799",
+            "CHEMBL454101",
+            "CHEMBL558306",
+            "CHEMBL505896",
+            "CHEMBL1270399"
+          ],
+          "rationale": "Potency (IC50 10 nM) and selectivity (19\u201335\u00d7) are now solved; the critical bottleneck is high hepatic clearance (CLint 150\u2013183 \u00b5L/min/mg) and CYP3A4 TDI flags in two candidates, blocking progression without ADMET optimization."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1802835",
+            "CHEMBL462622",
+            "CHEMBL497118",
+            "CHEMBL494985",
+            "CHEMBL601719"
+          ],
+          "rationale": "Potency is solved (all candidates \u22648 nM IC50); selectivity is acceptable (25\u201360x); but ADMET is now the critical bottleneck with CLint 24\u201331 \u00b5L/min/mg (borderline high) and multiple round 4 failures from CLint/CYP3A4 TDI despite good potency/selectivity\u2014prioritize lowest CLint and best Caco-2 permeability to de-risk metabolism."
+        }
+      ],
+      "cost_usd": 0.018895
+    },
+    {
+      "seed": 17,
+      "memory": true,
+      "top1_hits": 2,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL270548",
+            "CHEMBL449757"
+          ],
+          "rationale": "Potency remains the critical bottleneck with all visible compounds at 1000 nM IC50 versus target <100 nM; the candidate pool shows 3-fold improvement (IC50=300 nM) across all nominees, making potency optimization the primary direction, with CHEMBL402004 offering the best selectivity ratio (7.7x) among the potency-improved set."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "selectivity",
+            "potency",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL254280",
+            "CHEMBL255092",
+            "CHEMBL453849",
+            "CHEMBL573761",
+            "CHEMBL400332"
+          ],
+          "rationale": "Potency has been solved (IC50 now 30 nM, well below 100 nM target), but selectivity remains critically short at best 6.2x versus the 10x threshold; all candidates achieve excellent potency, so selectivity improvement is now the primary bottleneck, with CHEMBL254280 offering the best selectivity ratio (6.2x) despite elevated CLint (151.2)."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL454101",
+            "CHEMBL558306",
+            "CHEMBL1644799",
+            "CHEMBL505896",
+            "CHEMBL1270399"
+          ],
+          "rationale": "Potency (10 nM) and selectivity (19.2\u201334.8\u00d7) are now decisively solved; ADMET is the new bottleneck with CLint elevated across all candidates (153\u2013183 ul/min/mg, vs. prior safe range ~50\u201370), CYP3A4 TDI flagged in 2/6 compounds, and Caco-2 permeability marginal (6\u201311 range); CHEMBL454101 offers the lowest CLint (182.8) among high-selectivity leads and best hERG margin (10.08 \u00b5M), prioritizing ADMET liability minimization."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL462622",
+            "CHEMBL497118",
+            "CHEMBL494985",
+            "CHEMBL1802835",
+            "CHEMBL601719"
+          ],
+          "rationale": "Potency and selectivity are decisively solved (10 nM IC50, 19\u201335\u00d7 selectivity); ADMET remains the critical bottleneck with CLint elevated (153\u2013183 ul/min/mg in round 4 leads) and CYP3A4 TDI flagged in 2/6 compounds; the round 5 pool shows dramatically improved CLint (24\u201331 ul/min/mg) with no TDI flags, making ADMET optimization the clear priority, prioritizing compounds with lowest CLint and best Caco-2 permeability."
+        }
+      ],
+      "cost_usd": 0.021311
+    },
+    {
+      "seed": 23,
+      "memory": false,
+      "top1_hits": 2,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL270548",
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL449757"
+          ],
+          "rationale": "All round 1 compounds showed IC50=1000 nM (unacceptable potency); round 2 candidates show 3-fold improvement to IC50=300 nM, but this remains the critical bottleneck\u2014potency must reach <100 nM before selectivity or ADMET refinement can be prioritized."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL573761",
+            "CHEMBL400332"
+          ],
+          "rationale": "Potency has been solved (IC50 = 30 nM across all candidates), but high CLint (144\u2013177 \u00b5L/min/mg) has emerged as the critical blocker preventing progression; selectivity remains suboptimal in some candidates but is secondary to the metabolism crisis."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1644799",
+            "CHEMBL454101",
+            "CHEMBL558306",
+            "CHEMBL505896",
+            "CHEMBL1270399"
+          ],
+          "rationale": "Potency (IC50 10 nM) and selectivity (19\u201335\u00d7 ratio) are now solved across the pool; the critical bottleneck is ADMET, with two compounds showing CYP3A4 TDI flags and several displaying CLint >150 \u00b5L/min/mg, requiring immediate metabolic liabilities investigation before further progression."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "potency",
+            "selectivity",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1802835",
+            "CHEMBL462622",
+            "CHEMBL497118",
+            "CHEMBL494985",
+            "CHEMBL601719"
+          ],
+          "rationale": "Potency and selectivity are now solved (IC50 1-8 nM, selectivity_ratio 25-60x), but ADMET is the critical bottleneck: CLint is elevated across all compounds (24-31 \u00b5L/min/mg vs. earlier <20), and several round 4 compounds failed due to high CLint (>150) and CYP3A4 TDI; prioritize compounds with lowest CLint while maintaining potency-selectivity gains."
+        }
+      ],
+      "cost_usd": 0.01872
+    },
+    {
+      "seed": 23,
+      "memory": true,
+      "top1_hits": 4,
+      "top1_total": 4,
+      "cycle_waste_correct": 1,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL270548",
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL449757"
+          ],
+          "rationale": "Potency remains the primary bottleneck: all round 1 compounds failed at IC50 ~1000 nM (target <100 nM), and while round 2 candidates improve to 300 nM, this is still 3-fold above threshold; selectivity is secondary (best 6.8x vs. target 10x) and ADMET is manageable (hERG and CLint within acceptable ranges for now)."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL254280",
+            "CHEMBL255092",
+            "CHEMBL453849",
+            "CHEMBL573761",
+            "CHEMBL400332"
+          ],
+          "rationale": "Potency remains the critical bottleneck: best IC50 is 300 nM (3\u00d7 above 100 nM target); all round 3 candidates achieve 30 nM potency, solving this dimension decisively, while selectivity (best 6.2\u00d7 vs 10\u00d7 target) and ADMET (CLint 144\u2013176 represents escalating metabolic liability) become the next constraints to address in subsequent rounds."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "selectivity",
+            "ADMET",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL454101",
+            "CHEMBL1644799",
+            "CHEMBL1270399",
+            "CHEMBL505896",
+            "CHEMBL558306"
+          ],
+          "rationale": "Potency is solved (all candidates at 10 nM, well below 100 nM target); selectivity remains the primary bottleneck with best prior ratio of 7.7\u00d7 versus 10\u00d7 target, while ADMET (CLint 144\u2013177, CYP3A4 TDI emerging) has escalated into a secondary constraint requiring monitoring."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL462622",
+            "CHEMBL494985",
+            "CHEMBL497118",
+            "CHEMBL601719",
+            "CHEMBL1802835"
+          ],
+          "rationale": "Potency (1\u20138 nM) and selectivity (25\u201360\u00d7) are both solved; ADMET is now the bottleneck with CLint escalation (153\u2013183 in round 4) and emerging hERG/metabolism liabilities requiring immediate mitigation via lower CLint and improved safety margins."
+        }
+      ],
+      "cost_usd": 0.020435
+    },
+    {
+      "seed": 31,
+      "memory": false,
+      "top1_hits": 2,
+      "top1_total": 4,
+      "cycle_waste_correct": 1,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL270548",
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL449757"
+          ],
+          "rationale": "All round 1 compounds have IC50 = 1000 nM (unacceptable potency); round 2 candidates show 3-fold improvement to 300 nM IC50, making potency the critical bottleneck to address before selectivity or ADMET optimization."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL573761",
+            "CHEMBL400332"
+          ],
+          "rationale": "Potency has been solved (IC50 = 30 nM across all candidates), but high CLint (144\u2013177 \u00b5L/min/mg) now blocks progression; ADMET is the bottleneck."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1644799",
+            "CHEMBL454101",
+            "CHEMBL505896",
+            "CHEMBL558306",
+            "CHEMBL1270399"
+          ],
+          "rationale": "Potency (IC50 10 nM) and selectivity (19.9\u201334.8\u00d7) are now excellent across all candidates; the bottleneck is ADMET, where CYP3A4 TDI flags (CHEMBL1270399, CHEMBL505896) and high CLint (>150 \u00b5L/min/mg in most compounds) threaten progression, making metabolism-focused optimization the priority."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL462622",
+            "CHEMBL1802835",
+            "CHEMBL497118",
+            "CHEMBL494985",
+            "CHEMBL601719"
+          ],
+          "rationale": "Potency is solved (all candidates at 1\u20138 nM); selectivity is acceptable (25\u201360x); but ADMET is now the critical bottleneck\u2014recent round 4 failures (CHEMBL1270399, CHEMBL454101, CHEMBL505896) show CLint 150\u2013180 \u00b5L/min/mg and/or CYP3A4 TDI triggering failures despite good potency and selectivity; prioritize candidates with lowest CLint (<30 \u00b5L/min/mg) and robust permeability, starting with CHEMBL462622 (CLint 24.8, good Caco-2)."
+        }
+      ],
+      "cost_usd": 0.01914
+    },
+    {
+      "seed": 31,
+      "memory": true,
+      "top1_hits": 4,
+      "top1_total": 4,
+      "cycle_waste_correct": 1,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL270548",
+            "CHEMBL449757"
+          ],
+          "rationale": "Potency remains the primary bottleneck (best IC50 = 300 nM, target <100 nM); all candidates show 3-fold improvement over round 1 (1000\u2192300 nM) but selectivity and ADMET are secondary concerns until potency reaches acceptable range."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL254280",
+            "CHEMBL255092",
+            "CHEMBL453849",
+            "CHEMBL573761",
+            "CHEMBL400332"
+          ],
+          "rationale": "Potency remains the critical bottleneck: best IC50 is 300 nM (target <100 nM), and round 3 candidates show breakthrough to 30 nM\u2014a 10-fold improvement\u2014but selectivity and ADMET liabilities (high CLint 144\u2013176 UL/min/mg, elevated hERG IC50 near 10 \u03bcM) emerge as secondary concerns; CHEMBL254280 offers the best balance with lowest CLint (151.2) and highest selectivity (6.2x) among the potent hits."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "selectivity",
+            "ADMET",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL454101",
+            "CHEMBL1644799",
+            "CHEMBL1270399",
+            "CHEMBL505896",
+            "CHEMBL558306"
+          ],
+          "rationale": "Potency is now solved (all candidates at 10 nM, well below 100 nM target); selectivity remains the primary bottleneck with best prior ratio of 7.7x falling short of 10x threshold, while ADMET liabilities (CLint 144\u2013176, hERG near 10 \u03bcM, CYP3A4 TDI emerging) are secondary concerns that emerge post-selectivity optimization."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL462622",
+            "CHEMBL494985",
+            "CHEMBL497118",
+            "CHEMBL601719",
+            "CHEMBL1802835"
+          ],
+          "rationale": "Potency (1\u20138 nM) and selectivity (25\u201360x) are both in-range; ADMET is now the critical bottleneck with CLint still elevated (24\u201331 UL/min/mg) and hERG IC50 ranging 18\u201354 \u00b5M, requiring metabolic stability and cardiac safety optimization."
+        }
+      ],
+      "cost_usd": 0.020802
+    },
+    {
+      "seed": 41,
+      "memory": false,
+      "top1_hits": 2,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL270548",
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL449757"
+          ],
+          "rationale": "All Round 1 compounds show unacceptable IC50 (~1000 nM); Round 2 candidates achieve 3-fold improvement (IC50 = 300 nM) but remain far above typical lead criteria, making potency the critical bottleneck despite modest selectivity and ADMET gains."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL400332",
+            "CHEMBL573761"
+          ],
+          "rationale": "Potency has been solved (all candidates IC50 \u2264 30 nM, rounds 2\u20133 show 10-fold improvement); selectivity ratios are acceptable (2.5\u20136.2); but ADMET is now the critical bottleneck, with all candidates showing high CLint (144\u2013177 \u00b5L/min/mg), requiring metabolic stability optimization despite no CYP3A4 TDI flags."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1644799",
+            "CHEMBL454101",
+            "CHEMBL558306",
+            "CHEMBL505896",
+            "CHEMBL1270399"
+          ],
+          "rationale": "Potency is solved (all candidates IC50 = 10 nM, 10\u2013100\u00d7 better than rounds 1\u20132), selectivity is good (19.9\u201334.8\u00d7), but ADMET is now the critical bottleneck: multiple candidates show high CLint (153\u2013183 \u00b5L/min/mg, well above prior rounds' 48\u201370 range) and two show CYP3A4 TDI flags; CHEMBL1644799 and CHEMBL454101 have lower CLint and no TDI, making them priority synthesis targets."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1802835",
+            "CHEMBL462622",
+            "CHEMBL497118",
+            "CHEMBL494985",
+            "CHEMBL601719"
+          ],
+          "rationale": "Potency and selectivity are now solved (IC50 1\u20138 nM, selectivity_ratio 25\u201360x); ADMET is the critical bottleneck\u2014all round 4 advanced compounds show elevated CLint (144\u2013184 \u00b5L/min/mg) and two show CYP3A4 TDI, so round 5 must prioritize compounds with low CLint (<31 \u00b5L/min/mg) and no TDI flag."
+        }
+      ],
+      "cost_usd": 0.01938
+    },
+    {
+      "seed": 41,
+      "memory": true,
+      "top1_hits": 4,
+      "top1_total": 4,
+      "cycle_waste_correct": 1,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL270548",
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL449757"
+          ],
+          "rationale": "Potency remains the critical bottleneck: all round-1 compounds stalled at 1000 nM IC50 (10-fold above target), while all round-2 candidates show 300 nM IC50\u2014a major 3.3\u00d7 improvement that directly addresses the highest priority gap before selectivity (all still <10\u00d7) or ADMET can be properly optimized."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL254280",
+            "CHEMBL255092",
+            "CHEMBL400332",
+            "CHEMBL453849",
+            "CHEMBL573761"
+          ],
+          "rationale": "Potency remains the critical bottleneck: best visible IC50 is 300 nM (target <100 nM), and all round-3 candidates achieve 30 nM IC50\u2014a major 10-fold improvement that finally reaches the potency target; only after potency is solved can selectivity (all still <10\u00d7) and ADMET liabilities (high CLint 144\u2013176, hERG floor at 7.4 \u00b5M) be properly addressed."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "selectivity",
+            "ADMET",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL454101",
+            "CHEMBL505896",
+            "CHEMBL1644799",
+            "CHEMBL1270399",
+            "CHEMBL558306"
+          ],
+          "rationale": "Potency is now solved (all candidates at 10 nM IC50, well below 100 nM target); selectivity remains the critical bottleneck with best visible ratio only 7.7\u00d7 against the 10\u00d7 threshold, while ADMET liabilities (high CLint 144\u2013176, hERG floor 7.4 \u00b5M, emerging CYP3A4 TDI flags) become secondary once selectivity is in-range."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL462622",
+            "CHEMBL494985",
+            "CHEMBL497118",
+            "CHEMBL601719",
+            "CHEMBL1802835"
+          ],
+          "rationale": "Potency (1\u20138 nM) and selectivity (25\u201360\u00d7) are now both solidly in-range across the pool; ADMET is the remaining bottleneck, with CLint still elevated (24\u201331 \u00b5L/min/mg, target <15) and hERG IC50 floor at 18\u201355 \u00b5M requiring improvement to avoid safety liability."
+        }
+      ],
+      "cost_usd": 0.020741
+    },
+    {
+      "seed": 53,
+      "memory": false,
+      "top1_hits": 2,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL270548",
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL449757"
+          ],
+          "rationale": "All round 1 compounds plateau at IC50=1000 nM with selectivity ratios 2.2\u20136.4; round 2 candidates show 3-fold potency improvement (IC50=300 nM) but selectivity remains suboptimal (max 7.7x) and ADMET flags (high CLint 50\u201370, elevated cLogP 6\u20137, borderline hERG) require simultaneous attention, making potency the primary bottleneck to unlock further progress."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL573761",
+            "CHEMBL400332"
+          ],
+          "rationale": "Potency has improved dramatically (IC50 = 30 nM, well below 100 nM threshold) and selectivity is acceptable (5.8\u20136.2x in top candidates), but all round 3 candidates show high hepatic clearance (CLint 144\u2013177 \u00b5L/min/mg) that will severely limit in vivo exposure and progression."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1644799",
+            "CHEMBL454101",
+            "CHEMBL558306",
+            "CHEMBL505896",
+            "CHEMBL1270399"
+          ],
+          "rationale": "Potency (IC50 10 nM) and selectivity (19.9\u201334.8\u00d7) are now excellent across the pool; the critical bottleneck is ADMET, with CLint 150\u2013182 \u00b5L/min/mg and CYP3A4 TDI flags appearing in two compounds, blocking further progression without metabolic optimization."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1802835",
+            "CHEMBL462622",
+            "CHEMBL494985",
+            "CHEMBL497118",
+            "CHEMBL601719"
+          ],
+          "rationale": "Potency (IC50 = 1\u201310 nM) and selectivity (25\u201360\u00d7) are now excellent across all candidates; the bottleneck is ADMET, where rounds 3\u20134 revealed high CLint (150\u2013180 \u00b5L/min/mg) and CYP3A4 TDI flags, so priority is compounds with low CLint (<30 \u00b5L/min/mg), high Caco-2 Papp (>5), and no TDI."
+        }
+      ],
+      "cost_usd": 0.019175
+    },
+    {
+      "seed": 53,
+      "memory": true,
+      "top1_hits": 4,
+      "top1_total": 4,
+      "cycle_waste_correct": 1,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL270548",
+            "CHEMBL449757"
+          ],
+          "rationale": "Potency remains the primary bottleneck with best IC50 at 1000 nM (target <100 nM); all round-2 candidates show 3-fold improvement to 300 nM, making potency optimization the critical path before selectivity and ADMET refinement become viable."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL254280",
+            "CHEMBL255092",
+            "CHEMBL453849",
+            "CHEMBL573761",
+            "CHEMBL400332"
+          ],
+          "rationale": "Potency remains the primary bottleneck with best current IC50 at 300 nM (target <100 nM); round-3 candidates show 10-fold improvement to 30 nM, making potency optimization still the critical path before selectivity and ADMET refinement become viable."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "selectivity",
+            "ADMET",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL454101",
+            "CHEMBL505896",
+            "CHEMBL1644799",
+            "CHEMBL1270399",
+            "CHEMBL558306"
+          ],
+          "rationale": "Potency is now solved (IC50 = 10 nM, well below 100 nM target); selectivity remains the primary bottleneck with best ratio only 34.8x vs. the >10x minimum, requiring continued optimization to reduce off-target binding while managing emerging ADMET liabilities (elevated CLint 150\u2013183 and CYP3A4 TDI flags in 2/6 candidates)."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL462622",
+            "CHEMBL1802835",
+            "CHEMBL497118",
+            "CHEMBL494985",
+            "CHEMBL601719"
+          ],
+          "rationale": "Potency and selectivity are solved (IC50 = 1\u20138 nM, selectivity_ratio 25\u201360x); ADMET is now the critical bottleneck, with round-4 failures driven by high CLint (150\u2013183), CYP3A4 TDI flags, and low Caco-2 permeability, requiring compounds with reduced metabolic liability (<50 CLint) and maintained hERG safety."
+        }
+      ],
+      "cost_usd": 0.020227000000000002
+    },
+    {
+      "seed": 67,
+      "memory": false,
+      "top1_hits": 2,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL270548",
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL449757"
+          ],
+          "rationale": "All round 1 compounds show IC50 of 1000 nM with mediocre selectivity (2.2\u20136.4\u00d7); round 2 candidates achieve 300 nM IC50 with improved selectivity (5.2\u20137.7\u00d7), indicating potency remains the critical bottleneck despite ADMET and hERG appearing acceptable."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL573761",
+            "CHEMBL400332"
+          ],
+          "rationale": "Potency has improved dramatically (IC50 30 nM, 10-fold gain from 300 nM); selectivity is acceptable (5.8\u20137.1\u00d7 across round 2 compounds); however, CLint is now critically elevated (144\u2013176 \u00b5L/min/mg vs. 48\u201370 in prior rounds), making metabolism and clearance the dominant bottleneck blocking progression."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1644799",
+            "CHEMBL454101",
+            "CHEMBL558306",
+            "CHEMBL505896",
+            "CHEMBL1270399"
+          ],
+          "rationale": "Potency (IC50 10 nM) and selectivity (19\u201335\u00d7) are now solved; the critical bottleneck is ADMET, with CLint values 150\u2013185 ul/min/mg and two compounds showing CYP3A4 TDI, blocking progression without metabolic optimization."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1802835",
+            "CHEMBL462622",
+            "CHEMBL497118",
+            "CHEMBL494985",
+            "CHEMBL601719"
+          ],
+          "rationale": "Potency is solved (all round 5 candidates show IC50 \u2264 8 nM), selectivity is acceptable (all >25x ratio), but ADMET remains the critical blocker: round 4 showed multiple failures driven by high CLint (150\u2013183 \u00b5L/min/mg) and CYP3A4 TDI; round 5 candidates with low CLint (24\u201331 \u00b5L/min/mg) must be prioritized to overcome metabolism and TDI liabilities."
+        }
+      ],
+      "cost_usd": 0.01888
+    },
+    {
+      "seed": 67,
+      "memory": true,
+      "top1_hits": 2,
+      "top1_total": 4,
+      "cycle_waste_correct": 1,
+      "cycle_waste_total": 3,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL270548",
+            "CHEMBL402004",
+            "CHEMBL462023",
+            "CHEMBL508776",
+            "CHEMBL449757"
+          ],
+          "rationale": "Potency is the most urgent bottleneck: all visible compounds remain at IC50 1000 nM (>10\u00d7 target), while all candidates show IC50 300 nM\u2014a 3-fold improvement that is necessary before selectivity or ADMET can be meaningfully optimized."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "selectivity",
+            "ADMET",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL573761",
+            "CHEMBL400332"
+          ],
+          "rationale": "Potency has been solved (all candidates show IC50 30 nM, well below 100 nM target); selectivity remains the bottleneck with best ratio only 5.8x vs 10x target, and ADMET shows emerging CLint liabilities (144\u2013177 ul/min/mg) that will require parallel attention once selectivity improves."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL454101",
+            "CHEMBL1644799",
+            "CHEMBL1270399",
+            "CHEMBL505896",
+            "CHEMBL558306"
+          ],
+          "rationale": "Potency (10 nM) and selectivity (19\u201335\u00d7) are now solved across all candidates; ADMET is the critical bottleneck\u2014CLint remains dangerously high (153\u2013183 ul/min/mg, worse than round 3), CYP3A4 TDI flags appear in 2 compounds, and hERG/permeability need simultaneous optimization to unblock progression."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "ADMET",
+            "selectivity",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL462622",
+            "CHEMBL494985",
+            "CHEMBL497118",
+            "CHEMBL601719",
+            "CHEMBL1802835"
+          ],
+          "rationale": "Potency and selectivity are solved (IC50 1\u20138 nM, selectivity 25\u201360\u00d7); ADMET remains the bottleneck with CLint still elevated (26\u201331 ul/min/mg in candidates, previously 153\u2013183), no CYP3A4 TDI flags, but hERG IC50 must stay >10 \u00b5M and permeability optimized to prevent progression failure."
+        }
+      ],
+      "cost_usd": 0.020263
+    }
+  ]
+}

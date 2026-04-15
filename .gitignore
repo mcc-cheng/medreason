@@ -24,3 +24,5 @@ venv/
 .DS_Store
 Thumbs.db
 *.log
+.gstack/
+medreason_bench/leadop/cache/
