@@ -42,6 +42,7 @@ from medreason.extraction import (
     DEFAULT_THRESHOLDS as GATE_DEFAULTS,
     GateResult,
     GeneralizationGate,
+    abstract_rule,
     analyze_failure,
     propose_rules,
     run_critic,
@@ -229,6 +230,17 @@ class TrainingConfig:
     # action word cap to 30 words (metacognitive rules need both the
     # default and the override in one sentence).
     use_metacognitive_proposer: bool = False
+
+    # Rule abstraction pass. When True, every extracted rule (both
+    # normal and failure-derived) is run through the rule_abstractor
+    # before promotion. The abstractor rewrites case-specific text
+    # (drug names, diagnoses, procedures) into concept-level language
+    # so rules transfer across cases with different specific entities
+    # but the same structural pattern.
+    abstract_rules: bool = False
+
+    # LLM client for rule abstraction. Defaults to proposer_llm.
+    abstractor_llm: Optional[LLMClient] = None
 
 
 # ── The training loop ──────────────────────────────────────────────────────
@@ -418,6 +430,13 @@ def run_training(config: TrainingConfig) -> TrainingReport:
         if config.skip_gate:
             for cand in proposal.candidates:
                 report.n_rules_gated += 1
+                if config.abstract_rules:
+                    abs_llm = config.abstractor_llm or config.proposer_llm
+                    old_action = cand.action
+                    cand = abstract_rule(cand, abs_llm, seed=config.seed)
+                    if cand.action != old_action:
+                        _log(config.progress_hook,
+                             f"  abstracted: {old_action[:60]} -> {cand.action[:60]}")
                 report.gate_results.append({
                     "rule_id": cand.rule_id,
                     "action": cand.action[:80],
@@ -473,10 +492,14 @@ def run_training(config: TrainingConfig) -> TrainingReport:
             )
 
             if gate_result.new_status is RuleStatus.ACTIVE:
+                if config.abstract_rules:
+                    abs_llm = config.abstractor_llm or config.proposer_llm
+                    old_action = cand.action
+                    cand = abstract_rule(cand, abs_llm, seed=config.seed)
+                    if cand.action != old_action:
+                        _log(config.progress_hook,
+                             f"  abstracted: {old_action[:60]} -> {cand.action[:60]}")
                 cand.status = RuleStatus.ACTIVE
-                # Cache the rule's embedding so downstream retrieval
-                # doesn't pay for it at inference time. Use the same
-                # _rule_repr used by dense_rerank for consistency.
                 emb = embedder.embed(_rule_repr(cand))
                 cand.trigger.semantic_embedding = emb
                 cand.trigger.embedding_model = embedder.model_id

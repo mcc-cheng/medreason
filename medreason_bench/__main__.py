@@ -25,6 +25,7 @@ from .data import parse_lcd_xml
 from .data.adversarial_cases import build_adversarial_cases
 from .data.aetna_lumbar_mri_cases import build_aetna_lumbar_mri_cases
 from .data.case_builder import build_cases_from_lcd
+from .data.drugdisc_cases import build_drugdisc_cases
 from .data.lcd_edge_cases import build_lcd_edge_cases
 from .eval.harness import EvalConfig, run_eval
 from .leaderboard.build import build_entry, save_entry
@@ -58,6 +59,7 @@ def _build_claude_runner(
     *,
     include_policy: bool = False,
     policy_max_chars: int | None = None,
+    system_prompt_file: str = "system_pa.txt",
 ):
     """Build a ClaudeRunner with a CLI-alias-resolved model."""
     from medreason.runners import ClaudeRunner, resolve_claude_model
@@ -66,6 +68,7 @@ def _build_claude_runner(
         model=pinned,
         include_policy=include_policy,
         policy_max_chars=policy_max_chars,
+        system_prompt_file=system_prompt_file,
     )
 
 
@@ -85,9 +88,13 @@ def _cmd_data_build(args: argparse.Namespace) -> int:
         cases = build_lcd_edge_cases()
         print(f"  loaded {len(cases)} LCD edge cases")
     elif args.source == "aetna_lumbar":
-        print(f"[data build] using Aetna lumbar MRI within-domain fixture (30 cases)")
+        print(f"[data build] using Aetna lumbar MRI within-domain fixture")
         cases = build_aetna_lumbar_mri_cases()
         print(f"  loaded {len(cases)} Aetna lumbar MRI cases")
+    elif args.source == "drugdisc":
+        print(f"[data build] using drug discovery lead optimization fixture")
+        cases = build_drugdisc_cases()
+        print(f"  loaded {len(cases)} drug discovery cases")
     elif args.source == "combined":
         print(f"[data build] combining v0.1 adversarial + LCD edge fixture")
         cases = build_adversarial_cases() + build_lcd_edge_cases()
@@ -250,6 +257,7 @@ def _cmd_train(args: argparse.Namespace) -> int:
         progress_hook=lambda msg: print(msg),
         seed=args.seed,
         include_failures=args.include_failures,
+        abstract_rules=getattr(args, 'abstract_rules', False),
     )
 
     report = run_training(config)
@@ -456,14 +464,13 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     data_build.add_argument(
         "--source", type=str, default="lcd",
-        choices=["lcd", "adversarial", "lcd_edge", "aetna_lumbar", "combined"],
-        help="Case source: 'lcd' (template-expanded from an LCD XML, "
-             "default), 'adversarial' (v0.1 hand-authored fixture), "
-             "'lcd_edge' (xlsx-derived 30 LCD edge cases), "
-             "'aetna_lumbar' (v0.3 within-domain Aetna lumbar MRI "
-             "fixture, 30 hand-authored cases), or "
-             "'combined' (v0.1 adversarial + xlsx LCD edge — 50 cases "
-             "with balanced approve/deny ratio)",
+        choices=["lcd", "adversarial", "lcd_edge", "aetna_lumbar", "drugdisc", "combined"],
+        help="Case source: 'lcd' (template-expanded), 'adversarial' "
+             "(v0.1 hand-authored), 'lcd_edge' (xlsx-derived 30 LCD "
+             "edge cases), 'aetna_lumbar' (60-case within-domain Aetna "
+             "lumbar MRI), 'drugdisc' (25-case drug discovery lead "
+             "optimization), or 'combined' (v0.1 adversarial + xlsx "
+             "LCD edge)",
     )
     data_build.add_argument(
         "--lcd", type=str, default=None,
@@ -565,6 +572,12 @@ def _build_parser() -> argparse.ArgumentParser:
              "analyzer instead of discarding them. Extracts corrective "
              "rules from the cases the agent couldn't solve, breaking "
              "the chicken-and-egg where hard cases never produced a rule.",
+    )
+    train_p.add_argument(
+        "--abstract-rules", action="store_true",
+        help="Run every extracted rule through an abstraction pass that "
+             "rewrites case-specific text (drug names, diagnoses) into "
+             "concept-level language for cross-archetype transfer.",
     )
     train_p.set_defaults(func=_cmd_train)
 

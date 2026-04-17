@@ -1,0 +1,513 @@
+{
+  "campaign_id": "crizotinib_chembl_dryrun",
+  "n_decision_points": 4,
+  "seeds": [
+    11,
+    17,
+    23
+  ],
+  "agent": "llm",
+  "top1_memoff_rates": [
+    0.25,
+    0.25,
+    0.25
+  ],
+  "top1_memon_rates": [
+    0.25,
+    0.5,
+    0.25
+  ],
+  "top1_lift_pp": 8.333333333333332,
+  "top1_lift_ci_90_lo": 0.0,
+  "top1_lift_ci_90_hi": 16.666666666666664,
+  "cw_memoff_rates": [
+    0.4,
+    0.4,
+    0.4
+  ],
+  "cw_memon_rates": [
+    0.4,
+    0.4,
+    0.4
+  ],
+  "cw_lift_pp": 0.0,
+  "gate_passed": false,
+  "gate_reason": "90% CI lower bound 0.00pp is not > 0. Lift is not significantly above zero. Do NOT ship.",
+  "total_cost_usd": 0.09816400000000002,
+  "runs": [
+    {
+      "seed": 11,
+      "memory": false,
+      "top1_hits": 1,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 5,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL499618",
+            "CHEMBL574406",
+            "CHEMBL1650533",
+            "CHEMBL517469",
+            "CHEMBL564828"
+          ],
+          "rationale": "All round 2 candidates show 10-fold potency improvement (IC50 100 nM vs 1000 nM in round 1), so prioritize compounds with best selectivity ratios and favorable ADMET profiles while maintaining potency gains."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL400332",
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL573761"
+          ],
+          "rationale": "Round 3 candidates show major potency breakthrough (IC50 ~30 nM vs 100 nM prior), with CHEMBL400332 offering best selectivity (9.2), low TPSA (81), and high Caco2 permeability; potency gains now dominate the optimization path while maintaining safety margins."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "selectivity",
+            "potency",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1644799",
+            "CHEMBL1270399",
+            "CHEMBL505896",
+            "CHEMBL454101",
+            "CHEMBL558306"
+          ],
+          "rationale": "All candidates achieve potency (10 nM IC50) with improved selectivity ratios (15\u201324\u00d7) versus round 3 failures (5\u20139\u00d7), so prioritize selectivity validation; CHEMBL1644799 and CHEMBL1270399 offer the best selectivity-to-potency balance with acceptable ADMET, while CHEMBL558306 has poorest cLogP and lowest selectivity."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1802835",
+            "CHEMBL462622",
+            "CHEMBL494985",
+            "CHEMBL497118",
+            "CHEMBL601719"
+          ],
+          "rationale": "Round 5 candidates show dramatic potency gains (1 nM IC50 vs. 10 nM baseline), with CHEMBL1802835 and CHEMBL462622 maintaining excellent selectivity; prioritize synthesis of these ultra-potent leads while maintaining selectivity advantage."
+        }
+      ],
+      "cost_usd": 0.015453
+    },
+    {
+      "seed": 11,
+      "memory": true,
+      "top1_hits": 1,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 5,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL499618",
+            "CHEMBL574406",
+            "CHEMBL1650533",
+            "CHEMBL517469",
+            "CHEMBL564828"
+          ],
+          "rationale": "Round 1 compounds showed potency ceiling at 1000 nM IC50; all Round 2 candidates achieve 10-fold improvement to 100 nM, making potency the primary success metric, followed by selectivity ratios (1.4\u20132.7 vs. 0.6\u20131.3 historically), with CHEMBL499618 and CHEMBL574406 offering best combined potency, selectivity, and ADMET profiles."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL400332",
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL573761"
+          ],
+          "rationale": "Round 3 candidates achieve further 3-fold potency improvement (30 nM vs. 100 nM), with selectivity ratios 5.2\u20139.2 exceeding Round 2 benchmarks; CHEMBL400332 offers optimal balance of potency, highest selectivity (9.2), lowest MW/TPSA, and acceptable ADMET, prioritizing potency maintenance while consolidating selectivity gains."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "selectivity",
+            "potency",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1270399",
+            "CHEMBL1644799",
+            "CHEMBL505896",
+            "CHEMBL454101",
+            "CHEMBL558306"
+          ],
+          "rationale": "Round 3 failed despite achieving 30 nM potency with high selectivity ratios (5.2\u20139.2), indicating selectivity claims were unreliable; Round 4 candidates show 10 nM potency with dramatically elevated selectivity ratios (15.4\u201323.7), requiring urgent validation of selectivity integrity before advancing, with CHEMBL1270399 offering best combined profile (10 nM, 22.4 selectivity, favorable MW/TPSA/HERG)."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL497118",
+            "CHEMBL494985",
+            "CHEMBL462622",
+            "CHEMBL1802835",
+            "CHEMBL601719"
+          ],
+          "rationale": "Round 4 achieved exceptional potency (10 nM) with high selectivity ratios (15.4\u201323.7), but Round 5 candidates show dramatic potency gains (1 nM) with selectivity ratios exceeding 150, requiring validation that this 10-fold improvement is genuine rather than artifact; CHEMBL497118 offers lowest MW/TPSA with best selectivity (278.3) and strong Caco2, making it the safest choice to confirm potency gains while maintaining ADMET quality."
+        }
+      ],
+      "cost_usd": 0.016999
+    },
+    {
+      "seed": 17,
+      "memory": false,
+      "top1_hits": 1,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 5,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL499618",
+            "CHEMBL574406",
+            "CHEMBL1650533",
+            "CHEMBL517469",
+            "CHEMBL564828"
+          ],
+          "rationale": "All round 1 compounds showed weak potency (IC50=1000 nM); round 2 candidates show 10-fold improvement (IC50=100 nM), so potency is confirmed; selectivity ratios now range 1.4\u20132.7 (vs 0.6\u20131.3 previously), making selectivity the next priority, followed by ADMET optimization of physicochemical properties and potential scaffold exploration."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL400332",
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL573761"
+          ],
+          "rationale": "Round 3 candidates show 30 nM potency (10-fold improvement), so prioritize selectivity consolidation and ADMET optimization; CHEMBL400332 combines best selectivity (9.2), low MW (499.5), minimal HERG liability, and good caco2; CHEMBL255092 offers excellent oral bioavailability (18.26) with comparable selectivity; remaining compounds show weaker selectivity profiles or higher cLogP/HERG risk."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1270399",
+            "CHEMBL1644799",
+            "CHEMBL505896",
+            "CHEMBL454101",
+            "CHEMBL558306"
+          ],
+          "rationale": "Round 4 candidates show 10-100 nM potency with excellent selectivity (15-24\u00d7), so potency refinement toward single-digit nM is the priority; selectivity is already strong but warrant confirmation; ADMET is acceptable across candidates; scaffold diversity is lower priority given promising chemistry."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1802835",
+            "CHEMBL462622",
+            "CHEMBL494985",
+            "CHEMBL497118",
+            "CHEMBL601719"
+          ],
+          "rationale": "All candidates achieve excellent potency (1-8 nM IC50) with outstanding selectivity (32-278\u00d7 ratio); prioritize the most potent (1 nM) compounds with best selectivity and acceptable ADMET properties, with CHEMBL1802835 leading on potency-selectivity balance and lowest cLogP."
+        }
+      ],
+      "cost_usd": 0.015858
+    },
+    {
+      "seed": 17,
+      "memory": true,
+      "top1_hits": 2,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 5,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL499618",
+            "CHEMBL574406",
+            "CHEMBL1650533",
+            "CHEMBL517469",
+            "CHEMBL564828"
+          ],
+          "rationale": "All round 2 candidates show 10-fold potency improvement (IC50 100 nM vs 1000 nM); prioritize compounds with best selectivity and favorable ADMET profiles, starting with the lowest-MW, lowest-cLogP options that maintain potency."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "selectivity",
+            "potency",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL400332",
+            "CHEMBL254280",
+            "CHEMBL255092",
+            "CHEMBL453849",
+            "CHEMBL573761"
+          ],
+          "rationale": "Round 3 candidates show excellent potency (30 nM) and selectivity (5.2\u20139.2), so prioritize compounds with best selectivity-to-ADMET balance: CHEMBL400332 achieves highest selectivity (9.2) with lowest MW (499.5) and favorable Caco2 permeability, followed by CHEMBL254280 with outstanding selectivity (8.3) and modest MW/cLogP trade-offs."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "selectivity",
+            "ADMET",
+            "potency",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1644799",
+            "CHEMBL1270399",
+            "CHEMBL505896",
+            "CHEMBL454101",
+            "CHEMBL558306"
+          ],
+          "rationale": "Round 4 candidates achieve exceptional potency (10 nM) and selectivity (15.4\u201323.7), so focus on selectivity maintenance and ADMET optimization; CHEMBL1644799 offers the best selectivity (23.7) with favorable MW/cLogP, while CHEMBL1270399 provides excellent selectivity (22.4) with superior ADMET (lowest cLogP 3.80, good Caco2), and CHEMBL505896 balances high selectivity (22.2) with best permeability (13.83)."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL497118",
+            "CHEMBL494985",
+            "CHEMBL1802835",
+            "CHEMBL462622",
+            "CHEMBL601719"
+          ],
+          "rationale": "Round 5 candidates achieve exceptional sub-nanomolar potency (1\u20138 nM) with outstanding selectivity ratios (32.5\u2013278.3); prioritize CHEMBL497118 for its best-in-class selectivity (278.3), lowest MW (322.4), favorable ADMET (Caco2 15.51, cLogP 3.46), and CHEMBL494985 for excellent selectivity (229.5) and superior HERG margin (21.99 \u00b5M), maintaining the campaign's proven selectivity-first strategy while ensuring sustainable ADMET profiles."
+        }
+      ],
+      "cost_usd": 0.017293
+    },
+    {
+      "seed": 23,
+      "memory": false,
+      "top1_hits": 1,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 5,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL499618",
+            "CHEMBL574406",
+            "CHEMBL1650533",
+            "CHEMBL517469",
+            "CHEMBL564828"
+          ],
+          "rationale": "Round 1 compounds plateaued at 1000 nM potency; Round 2 candidates achieve 10-fold improvement (100 nM), so potency optimization is the primary focus, followed by maintaining/improving selectivity ratios (all candidates >1.4 vs. round 1 range 0.6-1.3), while ADMET properties remain manageable and scaffold hopping is premature given potency gains."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL400332",
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL573761"
+          ],
+          "rationale": "Round 3 candidates show 30 nM potency (3-fold improvement over round 2), with CHEMBL400332 offering best selectivity (9.2), lowest TPSA (81.0), and favorable balance of permeability and HERG safety to sustain momentum on potency while maintaining ADMET profile."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "selectivity",
+            "potency",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1644799",
+            "CHEMBL1270399",
+            "CHEMBL505896",
+            "CHEMBL454101",
+            "CHEMBL558306"
+          ],
+          "rationale": "Round 3 showed consistent selectivity failures (5.2\u20139.2 ratio) despite potency gains; all round 4 candidates show dramatically improved selectivity (15.4\u201323.7), with CHEMBL1644799 combining best selectivity (23.7) and potency (10 nM) while maintaining reasonable ADMET, making selectivity de-risking the critical priority."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL1802835",
+            "CHEMBL462622",
+            "CHEMBL494985",
+            "CHEMBL497118",
+            "CHEMBL601719"
+          ],
+          "rationale": "All candidates show excellent potency (1-8 nM IC50) with outstanding selectivity ratios (32.5-278.3); prioritize by combining potency gains with maintained selectivity while improving ADMET properties, with CHEMBL1802835 offering the best balance of sub-nanomolar potency and exceptional selectivity."
+        }
+      ],
+      "cost_usd": 0.015683
+    },
+    {
+      "seed": 23,
+      "memory": true,
+      "top1_hits": 1,
+      "top1_total": 4,
+      "cycle_waste_correct": 2,
+      "cycle_waste_total": 5,
+      "decisions": [
+        {
+          "decision_point_id": "CRIZO_DP_2",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL499618",
+            "CHEMBL574406",
+            "CHEMBL1650533",
+            "CHEMBL517469",
+            "CHEMBL564828"
+          ],
+          "rationale": "All round 2 candidates show 10-fold potency improvement (ic50 100 nM vs 1000 nM in round 1); prioritize compounds with best selectivity ratios and favorable ADMET, with CHEMBL499618 and CHEMBL574406 offering strong selectivity (2.5 and 2.7) and reasonable physicochemical properties."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_3",
+          "direction_ranking": [
+            "potency",
+            "selectivity",
+            "ADMET",
+            "scaffold_hop"
+          ],
+          "compound_ranking": [
+            "CHEMBL400332",
+            "CHEMBL255092",
+            "CHEMBL254280",
+            "CHEMBL453849",
+            "CHEMBL573761"
+          ],
+          "rationale": "Round 3 candidates achieve 3-fold potency improvement (30 nM) with dramatically enhanced selectivity (5.2\u20139.2 range); prioritize CHEMBL400332 for its superior selectivity (9.2), lowest TPSA (81.0), and reasonable Caco2 permeability, followed by CHEMBL255092 for excellent selectivity (8.4) and best permeability (18.26), while maintaining focus on potency as the primary driver."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_4",
+          "direction_ranking": [
+            "selectivity",
+            "scaffold_hop",
+            "ADMET",
+            "potency"
+          ],
+          "compound_ranking": [
+            "CHEMBL1644799",
+            "CHEMBL1270399",
+            "CHEMBL505896",
+            "CHEMBL454101",
+            "CHEMBL558306"
+          ],
+          "rationale": "Round 3 failed due to excessive selectivity (5.2\u20139.2), indicating potential off-target toxicity or narrow therapeutic window; Round 4 candidates achieve 10 nM potency with dramatically higher selectivity ratios (15.4\u201323.7), so prioritize selectivity validation and explore structural diversity (scaffold_hop) to confirm robustness, while CHEMBL1644799 and CHEMBL1270399 balance selectivity excellence with acceptable ADMET profiles."
+        },
+        {
+          "decision_point_id": "CRIZO_DP_5",
+          "direction_ranking": [
+            "potency",
+            "scaffold_hop",
+            "selectivity",
+            "ADMET"
+          ],
+          "compound_ranking": [
+            "CHEMBL1802835",
+            "CHEMBL462622",
+            "CHEMBL494985",
+            "CHEMBL497118",
+            "CHEMBL601719"
+          ],
+          "rationale": "Round 5 candidates achieve exceptional 1 nM potency with extraordinary selectivity ratios (32.5\u2013278.3), validating the selectivity-focused strategy from Round 4; prioritize potency confirmation at this breakthrough level, then scaffold_hop to ensure robustness across diverse chemotypes, as CHEMBL1802835, CHEMBL462622, and CHEMBL494985 offer balanced ultra-high selectivity with acceptable ADMET despite the notable HERG margins suggesting potential therapeutic window safety."
+        }
+      ],
+      "cost_usd": 0.016878
+    }
+  ]
+}

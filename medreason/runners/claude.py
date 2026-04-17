@@ -106,6 +106,7 @@ class ClaudeRunner:
         model: str = DEFAULT_CLAUDE_MODEL,
         max_tokens: int = DEFAULT_MAX_TOKENS,
         timeout_sec: float = DEFAULT_TIMEOUT_SEC,
+        system_prompt_file: str = SYSTEM_PROMPT_FILE,
         runner_id_suffix: str = "",
         include_policy: bool = False,
         policy_max_chars: Optional[int] = None,
@@ -136,6 +137,7 @@ class ClaudeRunner:
         self._timeout_sec = timeout_sec
         self._include_policy = include_policy
         self._policy_max_chars = policy_max_chars
+        self._system_prompt_file = system_prompt_file
         self._client: Any = None  # lazy; tests can set directly
 
     # ── Client lifecycle ────────────────────────────────────────────────────
@@ -192,7 +194,7 @@ class ClaudeRunner:
             system_extra: Optional prefix prepended to the frozen system
                 prompt. Used by the memory wrapper for rule injection.
         """
-        system_base = load_prompt(SYSTEM_PROMPT_FILE)
+        system_base = load_prompt(self._system_prompt_file)
         system = (
             f"{system_extra.strip()}\n\n{system_base}" if system_extra else system_base
         )

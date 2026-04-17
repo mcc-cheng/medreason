@@ -3,6 +3,8 @@
   "failure_analyzer.txt": "c1e0f0f35b4033c7f3e834b0612c612a5d7fcf58e3b98cb7779e508bffa826b2",
   "metacognitive_rule_proposer.txt": "7aef7113b71539a1431e2df49d7eeaa016e58df82a4f0d894e125d66d670801b",
   "rerank.txt": "0a805ab650d4796f537388cae3180beba7599d78b48464fabec40970dcb95653",
+  "rule_abstractor.txt": "adabd01a3b0465942dafa893c126d800e31f379f95b2b56cf3288fb2acae46f1",
   "rule_proposer.txt": "237d7eac2c9f95991d347d49b32b69918a6c7ae60736e31de430549f2443d0ab",
+  "system_drugdisc.txt": "8a21c2f911fc740597349e08420d87b5a18da51a4b31e4c01c3a9d7cd1127a06",
   "system_pa.txt": "593877d4c8199526d8b600f1cf780fdfd346c280b91f0b010931a44775dec068"
 }

@@ -28,6 +28,7 @@ from .generalization_gate import (
     GateThresholds,
     GeneralizationGate,
 )
+from .rule_abstractor import abstract_rule
 from .rule_proposer import (
     PatientIdentifierError,
     PolicyCitationError,
@@ -45,6 +46,7 @@ __all__ = [
     "PatientIdentifierError",
     "propose_rules",
     "analyze_failure",
+    "abstract_rule",
     "GeneralizationGate",
     "GateResult",
     "GateThresholds",
