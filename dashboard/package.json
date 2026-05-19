@@ -1,19 +1,25 @@
 {
-  "name": "veridicus-dashboard",
+  "name": "drug-discovery-canvas",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@prisma/client": "^5.14.0",
+    "framer-motion": "^11.0.0",
     "next": "^14.2.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "recharts": "^2.12.0",
-    "framer-motion": "^11.0.0"
+    "recharts": "^2.12.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
@@ -21,7 +27,9 @@
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.0",
+    "prisma": "^7.8.0",
     "tailwindcss": "^3.4.0",
+    "tsx": "^4.11.0",
     "typescript": "^5.3.0"
   }
 }

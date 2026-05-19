@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Knowledge Graph Nodes ────────────────────────────────────
+
+model Node {
+  id               String   @id          // e.g. "GLOW-SQUID-9"
+  name             String
+  type             NodeType
+  molecularWeight  Float?
+  dangerLevel      DangerLevel?
+  originDepartment String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Edges where this node is the source (tail)
+  outEdges         Edge[]   @relation("EdgeSource")
+  // Edges where this node is the target (head)
+  inEdges          Edge[]   @relation("EdgeTarget")
+
+  @@index([type])
+}
+
+enum NodeType {
+  BIOMOLECULE
+  CHEMICAL_CANDIDATE
+  METABOLIC_PATHWAY
+}
+
+enum DangerLevel {
+  LOW
+  MEDIUM
+  CHAOTIC
+}
+
+// ─── Knowledge Graph Edges ────────────────────────────────────
+
+model Edge {
+  id               String              @id @default(cuid())
+  sourceId         String
+  targetId         String
+  interactionType  EdgeInteractionType
+  confidenceScore  Float               @default(0.5)  // [0.0, 1.0]
+  observationCount Int                 @default(0)
+
+  // Bayesian prior pseudo-counts — updated by MemoryManager
+  priorAlpha       Float               @default(1.0)  // successes prior
+  priorBeta        Float               @default(1.0)  // failures prior
+
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  source           Node                @relation("EdgeSource", fields: [sourceId], references: [id], onDelete: Cascade)
+  target           Node                @relation("EdgeTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  provenanceLog    ProvenanceEntry[]
+
+  @@unique([sourceId, targetId, interactionType])
+  @@index([sourceId])
+  @@index([targetId])
+  @@index([confidenceScore])
+}
+
+enum EdgeInteractionType {
+  AGGRESSIVELY_TICKLES
+  MUTUALLY_ANNOYS
+  PERMANENTLY_MELTS
+  BENIGN_IGNORE
+}
+
+// ─── Provenance ───────────────────────────────────────────────
+
+model ProvenanceEntry {
+  id                      String           @id @default(cuid())
+  edgeId                  String
+  timestamp               DateTime         @default(now())
+  agentReasoningSnapshot  String           @db.Text
+  simulationSource        SimulationSource
+  evidenceWeight          Float            @default(1.0)
+  observedOutcome         ObservedOutcome
+
+  edge                    Edge             @relation(fields: [edgeId], references: [id], onDelete: Cascade)
+
+  @@index([edgeId])
+  @@index([timestamp])
+}
+
+enum SimulationSource {
+  MOCK_TOOL
+  USER_DIRECT_OVERWRITE
+  RAG_LITERATURE
+}
+
+enum ObservedOutcome {
+  SUPPORT
+  CONTRADICT
+  AMBIGUOUS
+}
+
+// ─── Agent Sessions ───────────────────────────────────────────
+
+model AgentSession {
+  id             String        @id @default(cuid())
+  createdAt      DateTime      @default(now())
+  userPrompt     String        @db.Text
+  finalResponse  String        @db.Text
+  totalTokens    Int           @default(0)
+  toolCallsJson  Json          // AgentToolCall[]
+  mutationsJson  Json          // GraphMutationSummary
+  messages       Json          // AgentMessage[] — full turn history
+
+  @@index([createdAt])
+}
