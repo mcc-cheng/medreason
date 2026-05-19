@@ -8,22 +8,22 @@ interface GraphData {
   edges: (InteractionEdge & { provenanceLog?: unknown[] })[];
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  BIOMOLECULE: '#60a5fa',        // blue
-  CHEMICAL_CANDIDATE: '#34d399', // green
-  METABOLIC_PATHWAY: '#fbbf24',  // amber
+const TYPE_STYLE: Record<string, { dot: string; label: string }> = {
+  BIOMOLECULE:        { dot: '#8b5cf6', label: 'Protein' },
+  CHEMICAL_CANDIDATE: { dot: '#34d399', label: 'Compound' },
+  METABOLIC_PATHWAY:  { dot: '#fbbf24', label: 'Pathway' },
 };
 
-const DANGER_BADGE: Record<string, string> = {
-  LOW: 'text-green-400 bg-green-900',
-  MEDIUM: 'text-amber-400 bg-amber-900',
-  CHAOTIC: 'text-red-400 bg-red-900',
+const DANGER_STYLE: Record<string, string> = {
+  LOW:     'text-emerald-400 bg-emerald-400/10',
+  MEDIUM:  'text-amber-400   bg-amber-400/10',
+  CHAOTIC: 'text-red-400     bg-red-400/10',
 };
 
 export default function GraphView() {
-  const [data, setData] = useState<GraphData | null>(null);
+  const [data, setData]       = useState<GraphData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(null);
 
   async function fetchGraph() {
     setLoading(true);
@@ -42,109 +42,144 @@ export default function GraphView() {
   useEffect(() => { fetchGraph(); }, []);
 
   if (loading) return <GraphSkeleton />;
-  if (error) return <p className="text-red-400 text-sm">{error}</p>;
-  if (!data) return null;
 
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 space-y-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white">Knowledge Graph</h2>
+    <div className="glass-refract rounded-2xl overflow-hidden shadow-diffuse">
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-white/[0.04] flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-semibold text-white">Knowledge Graph</h2>
+          {data && (
+            <p className="text-xs text-zinc-500 mt-0.5">
+              {data.nodes.length} nodes · {data.edges.length} edges
+            </p>
+          )}
+        </div>
         <button
           onClick={fetchGraph}
-          className="text-xs text-gray-400 hover:text-gray-200 transition-colors px-2 py-1 rounded border border-gray-700 hover:border-gray-500"
+          className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-2.5 py-1 rounded-lg hover:bg-white/[0.04]"
         >
           Refresh
         </button>
       </div>
 
-      {/* Node list */}
-      <div>
-        <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">
-          Nodes ({data.nodes.length})
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {data.nodes.map((n) => (
-            <div key={n.id} className="bg-gray-800 rounded-lg px-3 py-2 flex items-start gap-3">
-              <span
-                className="mt-0.5 w-2 h-2 rounded-full flex-shrink-0"
-                style={{ background: TYPE_COLORS[n.type] ?? '#9ca3af' }}
-              />
-              <div className="min-w-0">
-                <p className="text-sm font-mono text-white truncate">{n.id}</p>
-                <p className="text-xs text-gray-400 truncate">{n.name}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-gray-500">{n.type}</span>
-                  {n.metadata.dangerLevel && (
-                    <span
-                      className={`text-xs px-1.5 py-0.5 rounded font-medium ${DANGER_BADGE[n.metadata.dangerLevel]}`}
-                    >
-                      {n.metadata.dangerLevel}
-                    </span>
-                  )}
-                  {n.metadata.molecularWeight && (
-                    <span className="text-xs text-gray-500">{n.metadata.molecularWeight} Da</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Edge list */}
-      {data.edges.length > 0 && (
-        <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">
-            Edges ({data.edges.length})
-          </p>
-          <div className="space-y-2">
-            {data.edges.map((e) => (
-              <div key={e.id} className="bg-gray-800 rounded-lg px-3 py-2 text-xs font-mono">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-blue-300">{e.sourceId}</span>
-                  <span className="text-gray-500">
-                    —[{e.interactionType}]→
-                  </span>
-                  <span className="text-green-300">{e.targetId}</span>
-                </div>
-                <div className="flex items-center gap-4 mt-1">
-                  <ConfidenceBar value={e.confidenceScore} />
-                  <span className="text-gray-500">n={e.observationCount}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+      {error && (
+        <div className="m-5 rounded-xl px-4 py-3 text-xs text-red-300"
+          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)' }}>
+          {error}
         </div>
       )}
 
-      {data.edges.length === 0 && (
-        <p className="text-sm text-gray-500 italic">
-          No edges yet — run a simulation to discover interactions.
-        </p>
+      {data && (
+        <div className="p-5 space-y-5">
+          {/* Nodes */}
+          <div>
+            <p className="text-xs text-zinc-600 uppercase tracking-widest mb-2.5">Nodes</p>
+            <div className="space-y-1.5">
+              {data.nodes.map((n) => {
+                const ts = TYPE_STYLE[n.type] ?? { dot: '#6b7280', label: n.type };
+                const ds = n.metadata.dangerLevel ? DANGER_STYLE[n.metadata.dangerLevel] : null;
+                return (
+                  <div
+                    key={n.id}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-white/[0.02]"
+                    style={{ border: '1px solid rgba(255,255,255,0.04)' }}
+                  >
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ background: ts.dot, boxShadow: `0 0 6px ${ts.dot}66` }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-mono font-medium text-white">{n.id}</span>
+                        <span className="text-[10px] text-zinc-600">{ts.label}</span>
+                        {ds && (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${ds}`}>
+                            {n.metadata.dangerLevel}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-zinc-500 truncate mt-0.5">{n.name}</p>
+                    </div>
+                    {n.metadata.molecularWeight && (
+                      <span className="text-[10px] text-zinc-700 font-mono flex-shrink-0">
+                        {n.metadata.molecularWeight >= 1000
+                          ? `${(n.metadata.molecularWeight / 1000).toFixed(0)} kDa`
+                          : `${n.metadata.molecularWeight} Da`}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Edges */}
+          {data.edges.length > 0 && (
+            <div>
+              <p className="text-xs text-zinc-600 uppercase tracking-widest mb-2.5">Interactions</p>
+              <div className="space-y-2">
+                {data.edges.map((e) => (
+                  <EdgeRow key={e.id} edge={e} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {data.edges.length === 0 && (
+            <p className="text-xs text-zinc-600 italic text-center py-4">
+              No interactions yet — run a simulation to discover edges.
+            </p>
+          )}
+        </div>
       )}
     </div>
   );
 }
 
-function ConfidenceBar({ value }: { value: number }) {
-  const pct = Math.round(value * 100);
-  const color = value > 0.7 ? '#34d399' : value > 0.4 ? '#fbbf24' : '#f87171';
+function EdgeRow({ edge }: { edge: InteractionEdge & { provenanceLog?: unknown[] } }) {
+  const pct = Math.round(edge.confidenceScore * 100);
+  const barColor = edge.confidenceScore > 0.7
+    ? '#34d399'
+    : edge.confidenceScore > 0.4
+    ? '#fbbf24'
+    : '#f87171';
+
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-20 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+    <div
+      className="px-3 py-3 rounded-xl space-y-2"
+      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}
+    >
+      <div className="flex items-center gap-2 text-xs font-mono flex-wrap">
+        <span className="text-violet-300">{edge.sourceId}</span>
+        <span className="text-zinc-700 text-[10px] px-1.5 py-0.5 rounded"
+          style={{ background: 'rgba(255,255,255,0.04)' }}>
+          {edge.interactionType.toLowerCase()}
+        </span>
+        <span className="text-emerald-300">{edge.targetId}</span>
       </div>
-      <span style={{ color }}>{pct}%</span>
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${pct}%`, background: barColor, boxShadow: `0 0 6px ${barColor}66` }}
+          />
+        </div>
+        <span className="text-xs font-mono font-medium flex-shrink-0" style={{ color: barColor }}>
+          {pct}%
+        </span>
+        <span className="text-[10px] text-zinc-600 flex-shrink-0">n={edge.observationCount}</span>
+      </div>
     </div>
   );
 }
 
 function GraphSkeleton() {
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 space-y-3 animate-pulse">
-      <div className="h-5 bg-gray-700 rounded w-40" />
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="h-14 bg-gray-800 rounded-lg" />
+    <div className="glass-refract rounded-2xl overflow-hidden shadow-diffuse p-5 space-y-3 animate-pulse">
+      <div className="h-4 bg-white/[0.04] rounded w-32" />
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div key={i} className="h-12 bg-white/[0.02] rounded-xl" />
       ))}
     </div>
   );

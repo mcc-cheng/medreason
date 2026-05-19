@@ -2,14 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AgentEngine } from '@/lib/agentEngine';
 import type { AgentRunInput } from '@/lib/types';
 
-export const runtime = 'nodejs'; // Prisma requires Node.js runtime
+export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: 'GEMINI_API_KEY not set' }, { status: 500 });
-  }
-
   let body: AgentRunInput;
   try {
     body = await req.json();
@@ -26,10 +21,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const engine = new AgentEngine(apiKey);
+    const engine = new AgentEngine();
     const output = await engine.run({
-      userPrompt: body.userPrompt,
-      focalNodeIds: body.focalNodeIds,
+      userPrompt:    body.userPrompt,
+      focalNodeIds:  body.focalNodeIds,
       subGraphDepth: body.subGraphDepth ?? 2,
     });
     return NextResponse.json(output);
