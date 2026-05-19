@@ -1,93 +1,201 @@
-import { PrismaClient, NodeType, DangerLevel, EdgeInteractionType, SimulationSource, ObservedOutcome } from '@prisma/client';
+import {
+  PrismaClient,
+  NodeType,
+  DangerLevel,
+  EdgeInteractionType,
+  SimulationSource,
+  ObservedOutcome,
+} from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// ─── Real drug-protein interactions ───────────────────────────
+// BCR-ABL / Imatinib  → classic targeted oncology (CML)
+// EGFR    / Gefitinib → EGFR+ non-small cell lung cancer
+// COX-2   / Aspirin   → COX-2 irreversible acetylation (anti-inflammatory)
+
 async function main() {
-  // Seed mock nodes
-  await prisma.node.upsert({
-    where: { id: 'GLOW-SQUID-9' },
-    update: {},
-    create: {
-      id: 'GLOW-SQUID-9',
-      name: 'Glow Squid Bioluminescent Receptor',
-      type: NodeType.BIOMOLECULE,
-      molecularWeight: 42300,
-      dangerLevel: DangerLevel.LOW,
-      originDepartment: 'Department of Mad Science and Taco Logistics',
-    },
-  });
+  // ── Proteins (BIOMOLECULE) ──────────────────────────────────
 
   await prisma.node.upsert({
-    where: { id: 'HONEY-BADGER-X' },
+    where: { id: 'BCR-ABL' },
     update: {},
     create: {
-      id: 'HONEY-BADGER-X',
-      name: 'Honey Badger Resilience Structural Protein',
+      id: 'BCR-ABL',
+      name: 'BCR-ABL fusion tyrosine kinase',
       type: NodeType.BIOMOLECULE,
-      molecularWeight: 88500,
-      dangerLevel: DangerLevel.CHAOTIC,
-      originDepartment: 'Department of Mad Science and Taco Logistics',
-    },
-  });
-
-  await prisma.node.upsert({
-    where: { id: 'CHIPOTLE-MAYO-42' },
-    update: {},
-    create: {
-      id: 'CHIPOTLE-MAYO-42',
-      name: 'Chipotle Mayo Small Molecule Compound',
-      type: NodeType.CHEMICAL_CANDIDATE,
-      molecularWeight: 312.4,
+      molecularWeight: 210000,   // ~210 kDa fusion protein
       dangerLevel: DangerLevel.MEDIUM,
-      originDepartment: 'Department of Mad Science and Taco Logistics',
+      originDepartment: 'Computational Biology Lab',
     },
   });
 
   await prisma.node.upsert({
-    where: { id: 'CAFFEINE-OVERDOSE-99' },
+    where: { id: 'EGFR' },
     update: {},
     create: {
-      id: 'CAFFEINE-OVERDOSE-99',
-      name: 'Caffeine Overdose Synthetic Stimulant Derivative',
-      type: NodeType.CHEMICAL_CANDIDATE,
-      molecularWeight: 194.19,
-      dangerLevel: DangerLevel.CHAOTIC,
-      originDepartment: 'Department of Mad Science and Taco Logistics',
+      id: 'EGFR',
+      name: 'Epidermal Growth Factor Receptor (EGFR/HER1)',
+      type: NodeType.BIOMOLECULE,
+      molecularWeight: 134000,   // ~134 kDa transmembrane receptor
+      dangerLevel: DangerLevel.MEDIUM,
+      originDepartment: 'Computational Biology Lab',
     },
   });
 
-  // Seed a mock edge with one provenance entry
-  const edge = await prisma.edge.upsert({
+  await prisma.node.upsert({
+    where: { id: 'COX-2' },
+    update: {},
+    create: {
+      id: 'COX-2',
+      name: 'Cyclooxygenase-2 (PTGS2)',
+      type: NodeType.BIOMOLECULE,
+      molecularWeight: 70000,    // ~70 kDa homodimer subunit
+      dangerLevel: DangerLevel.LOW,
+      originDepartment: 'Computational Biology Lab',
+    },
+  });
+
+  // ── Compounds (CHEMICAL_CANDIDATE) ──────────────────────────
+
+  await prisma.node.upsert({
+    where: { id: 'IMATINIB' },
+    update: {},
+    create: {
+      id: 'IMATINIB',
+      name: 'Imatinib (Gleevec / STI-571)',
+      type: NodeType.CHEMICAL_CANDIDATE,
+      molecularWeight: 493.6,    // free base, Da
+      dangerLevel: DangerLevel.LOW,
+      originDepartment: 'Computational Biology Lab',
+    },
+  });
+
+  await prisma.node.upsert({
+    where: { id: 'GEFITINIB' },
+    update: {},
+    create: {
+      id: 'GEFITINIB',
+      name: 'Gefitinib (Iressa / ZD1839)',
+      type: NodeType.CHEMICAL_CANDIDATE,
+      molecularWeight: 446.9,    // Da
+      dangerLevel: DangerLevel.MEDIUM,
+      originDepartment: 'Computational Biology Lab',
+    },
+  });
+
+  await prisma.node.upsert({
+    where: { id: 'ASPIRIN' },
+    update: {},
+    create: {
+      id: 'ASPIRIN',
+      name: 'Aspirin (Acetylsalicylic acid)',
+      type: NodeType.CHEMICAL_CANDIDATE,
+      molecularWeight: 180.2,    // Da
+      dangerLevel: DangerLevel.LOW,
+      originDepartment: 'Computational Biology Lab',
+    },
+  });
+
+  // ── Edges (known interactions with prior confidence) ─────────
+
+  // Imatinib → BCR-ABL: well-validated ATP-pocket inhibitor (high confidence)
+  const edgeImatinibBcrAbl = await prisma.edge.upsert({
     where: {
       sourceId_targetId_interactionType: {
-        sourceId: 'CHIPOTLE-MAYO-42',
-        targetId: 'GLOW-SQUID-9',
-        interactionType: EdgeInteractionType.AGGRESSIVELY_TICKLES,
+        sourceId: 'IMATINIB',
+        targetId: 'BCR-ABL',
+        interactionType: EdgeInteractionType.INHIBITS,
       },
     },
     update: {},
     create: {
-      sourceId: 'CHIPOTLE-MAYO-42',
-      targetId: 'GLOW-SQUID-9',
-      interactionType: EdgeInteractionType.AGGRESSIVELY_TICKLES,
-      confidenceScore: 0.72,
-      observationCount: 3,
-      priorAlpha: 3,
+      sourceId: 'IMATINIB',
+      targetId: 'BCR-ABL',
+      interactionType: EdgeInteractionType.INHIBITS,
+      confidenceScore: 0.96,
+      observationCount: 12,
+      priorAlpha: 12,
       priorBeta: 1,
     },
   });
 
   await prisma.provenanceEntry.create({
     data: {
-      edgeId: edge.id,
-      agentReasoningSnapshot: 'Seed: initial interaction observed in mock simulation run #1.',
-      simulationSource: SimulationSource.MOCK_TOOL,
+      edgeId: edgeImatinibBcrAbl.id,
+      agentReasoningSnapshot:
+        'Seed: Imatinib binds the inactive conformation of BCR-ABL ATP pocket (IC50 ≈ 0.025 µM). FDA-approved for CML. High prior confidence from literature.',
+      simulationSource: SimulationSource.RAG_LITERATURE,
       evidenceWeight: 1.0,
       observedOutcome: ObservedOutcome.SUPPORT,
     },
   });
 
-  console.log('Seed complete.');
+  // Gefitinib → EGFR: reversible ATP-competitive inhibitor
+  const edgeGefitinibEgfr = await prisma.edge.upsert({
+    where: {
+      sourceId_targetId_interactionType: {
+        sourceId: 'GEFITINIB',
+        targetId: 'EGFR',
+        interactionType: EdgeInteractionType.INHIBITS,
+      },
+    },
+    update: {},
+    create: {
+      sourceId: 'GEFITINIB',
+      targetId: 'EGFR',
+      interactionType: EdgeInteractionType.INHIBITS,
+      confidenceScore: 0.91,
+      observationCount: 8,
+      priorAlpha: 8,
+      priorBeta: 1,
+    },
+  });
+
+  await prisma.provenanceEntry.create({
+    data: {
+      edgeId: edgeGefitinibEgfr.id,
+      agentReasoningSnapshot:
+        'Seed: Gefitinib reversibly inhibits EGFR tyrosine kinase by competing at the ATP binding site (IC50 ≈ 0.033 µM). FDA-approved for EGFR-mutant NSCLC.',
+      simulationSource: SimulationSource.RAG_LITERATURE,
+      evidenceWeight: 1.0,
+      observedOutcome: ObservedOutcome.SUPPORT,
+    },
+  });
+
+  // Aspirin → COX-2: irreversible covalent acetylation at Ser516
+  const edgeAspirinCox2 = await prisma.edge.upsert({
+    where: {
+      sourceId_targetId_interactionType: {
+        sourceId: 'ASPIRIN',
+        targetId: 'COX-2',
+        interactionType: EdgeInteractionType.INHIBITS,
+      },
+    },
+    update: {},
+    create: {
+      sourceId: 'ASPIRIN',
+      targetId: 'COX-2',
+      interactionType: EdgeInteractionType.INHIBITS,
+      confidenceScore: 0.89,
+      observationCount: 6,
+      priorAlpha: 6,
+      priorBeta: 1,
+    },
+  });
+
+  await prisma.provenanceEntry.create({
+    data: {
+      edgeId: edgeAspirinCox2.id,
+      agentReasoningSnapshot:
+        'Seed: Aspirin irreversibly acetylates COX-2 Ser516, blocking arachidonic acid access and preventing prostaglandin synthesis. Mechanism confirmed by X-ray crystallography.',
+      simulationSource: SimulationSource.RAG_LITERATURE,
+      evidenceWeight: 1.0,
+      observedOutcome: ObservedOutcome.SUPPORT,
+    },
+  });
+
+  console.log('Seed complete — 6 nodes, 3 edges seeded.');
 }
 
 main()

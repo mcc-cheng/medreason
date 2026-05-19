@@ -8,7 +8,7 @@
 
 import {
   GoogleGenerativeAI,
-  FunctionDeclarationSchemaType,
+  SchemaType,
   type Tool,
   type FunctionDeclaration,
   type GenerateContentRequest,
@@ -82,18 +82,18 @@ const TOOLS: Tool[] = [
         description:
           'Run a compound-protein knockout simulation. Returns predicted efficacy and toxicity scores.',
         parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
             compound_id: {
-              type: FunctionDeclarationSchemaType.STRING,
-              description: 'ID of the chemical compound node (e.g. "CHIPOTLE-MAYO-42")',
+              type: SchemaType.STRING,
+              description: 'ID of the chemical compound node (e.g. "IMATINIB", "GEFITINIB", "ASPIRIN")',
             },
             protein_id: {
-              type: FunctionDeclarationSchemaType.STRING,
-              description: 'ID of the protein/biomolecule node (e.g. "GLOW-SQUID-9")',
+              type: SchemaType.STRING,
+              description: 'ID of the protein/biomolecule node (e.g. "BCR-ABL", "EGFR", "COX-2")',
             },
             concentration_um: {
-              type: FunctionDeclarationSchemaType.NUMBER,
+              type: SchemaType.NUMBER,
               description: 'Compound concentration in micromolar (µM)',
             },
           },
@@ -105,18 +105,18 @@ const TOOLS: Tool[] = [
         description:
           'Assess the safety profile of a compound based on its molecular weight and danger metadata.',
         parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
             compound_id: {
-              type: FunctionDeclarationSchemaType.STRING,
+              type: SchemaType.STRING,
               description: 'ID of the compound node',
             },
             molecular_weight: {
-              type: FunctionDeclarationSchemaType.NUMBER,
+              type: SchemaType.NUMBER,
               description: 'Molecular weight of the compound in Da',
             },
             danger_level: {
-              type: FunctionDeclarationSchemaType.STRING,
+              type: SchemaType.STRING,
               description: 'Danger level: LOW | MEDIUM | CHAOTIC',
             },
           },
@@ -128,15 +128,15 @@ const TOOLS: Tool[] = [
         description:
           'Query the knowledge graph for nodes and their known interactions. Use this to look up what compounds or proteins are known and what their current confidence scores are.',
         parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
             node_ids: {
-              type: FunctionDeclarationSchemaType.ARRAY,
-              items: { type: FunctionDeclarationSchemaType.STRING },
+              type: SchemaType.ARRAY,
+              items: { type: SchemaType.STRING },
               description: 'List of node IDs to query. Pass empty array to list all nodes.',
             },
             depth: {
-              type: FunctionDeclarationSchemaType.NUMBER,
+              type: SchemaType.NUMBER,
               description: 'How many hops to traverse from each focal node (1–3). Default 1.',
             },
           },
@@ -231,7 +231,7 @@ export class AgentEngine {
     ].join('\n');
 
     const model = this.genai.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       systemInstruction,
       tools: TOOLS,
     });
@@ -316,7 +316,7 @@ export class AgentEngine {
             const edgeId = await this.memory.upsertEdge({
               sourceId: compoundId,
               targetId: proteinId,
-              interactionType: 'AGGRESSIVELY_TICKLES',
+              interactionType: 'INHIBITS',
               confidenceScore: simResult.predictedEfficacy,
               observationCount: 1,
             });

@@ -67,10 +67,10 @@ model Edge {
 }
 
 enum EdgeInteractionType {
-  AGGRESSIVELY_TICKLES
-  MUTUALLY_ANNOYS
-  PERMANENTLY_MELTS
-  BENIGN_IGNORE
+  INHIBITS
+  ACTIVATES
+  BINDS
+  ALLOSTERIC_MODULATOR
 }
 
 // ─── Provenance ───────────────────────────────────────────────

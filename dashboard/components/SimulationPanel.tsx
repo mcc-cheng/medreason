@@ -4,10 +4,12 @@ import { useState } from 'react';
 import type { AgentRunOutput } from '@/lib/types';
 
 const KNOWN_NODES = [
-  { id: 'GLOW-SQUID-9', label: 'GLOW-SQUID-9 (protein)' },
-  { id: 'HONEY-BADGER-X', label: 'HONEY-BADGER-X (protein)' },
-  { id: 'CHIPOTLE-MAYO-42', label: 'CHIPOTLE-MAYO-42 (compound)' },
-  { id: 'CAFFEINE-OVERDOSE-99', label: 'CAFFEINE-OVERDOSE-99 (compound)' },
+  { id: 'BCR-ABL', label: 'BCR-ABL (kinase)' },
+  { id: 'EGFR', label: 'EGFR (receptor)' },
+  { id: 'COX-2', label: 'COX-2 (enzyme)' },
+  { id: 'IMATINIB', label: 'Imatinib (compound)' },
+  { id: 'GEFITINIB', label: 'Gefitinib (compound)' },
+  { id: 'ASPIRIN', label: 'Aspirin (compound)' },
 ];
 
 interface Props {
@@ -59,7 +61,9 @@ export default function SimulationPanel({ onResult }: Props) {
 
       {/* Node selector */}
       <div>
-        <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Focal nodes</p>
+        <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">
+          Focal nodes <span className="text-gray-600 normal-case">(select at least one)</span>
+        </p>
         <div className="flex flex-wrap gap-2">
           {KNOWN_NODES.map((n) => (
             <button
@@ -82,7 +86,7 @@ export default function SimulationPanel({ onResult }: Props) {
         <textarea
           className="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-gray-100 text-sm placeholder-gray-500 resize-none focus:outline-none focus:border-blue-500 transition-colors"
           rows={3}
-          placeholder='e.g. "Simulate CHIPOTLE-MAYO-42 binding to GLOW-SQUID-9 at 10µM and assess its safety profile."'
+          placeholder='e.g. "Simulate Imatinib binding to BCR-ABL at 0.1µM and assess its safety profile."'
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
         />

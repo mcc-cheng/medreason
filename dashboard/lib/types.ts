@@ -21,10 +21,10 @@ export interface CustomNode {
 // ─── Graph Edge ──────────────────────────────────────────────
 
 export type EdgeInteractionType =
-  | 'AGGRESSIVELY_TICKLES'
-  | 'MUTUALLY_ANNOYS'
-  | 'PERMANENTLY_MELTS'
-  | 'BENIGN_IGNORE';
+  | 'INHIBITS'
+  | 'ACTIVATES'
+  | 'BINDS'
+  | 'ALLOSTERIC_MODULATOR';
 
 export interface ProvenanceEntry {
   timestamp: string; // ISO-8601
@@ -129,13 +129,15 @@ export interface AgentRunOutput {
 
 // ─── Mock Fixture Constants ───────────────────────────────────
 
-export const MOCK_NODE_IDS = {
-  PROTEIN_ALPHA: 'GLOW-SQUID-9',
-  PROTEIN_BETA: 'HONEY-BADGER-X',
-  COMPOUND_ALPHA: 'CHIPOTLE-MAYO-42',
-  COMPOUND_BETA: 'CAFFEINE-OVERDOSE-99',
+export const SEED_NODE_IDS = {
+  PROTEIN_BCR_ABL: 'BCR-ABL',
+  PROTEIN_EGFR: 'EGFR',
+  PROTEIN_COX2: 'COX-2',
+  COMPOUND_IMATINIB: 'IMATINIB',
+  COMPOUND_GEFITINIB: 'GEFITINIB',
+  COMPOUND_ASPIRIN: 'ASPIRIN',
 } as const;
 
-export const MOCK_DEPARTMENT = 'Department of Mad Science and Taco Logistics' as const;
+export const SEED_DEPARTMENT = 'Computational Biology Lab' as const;
 
-export type MockNodeId = (typeof MOCK_NODE_IDS)[keyof typeof MOCK_NODE_IDS];
+export type SeedNodeId = (typeof SEED_NODE_IDS)[keyof typeof SEED_NODE_IDS];
