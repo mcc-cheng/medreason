@@ -1,0 +1,186 @@
+{
+  "cases": [
+    {
+      "applied_rules": [
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_ffee54d490"
+        },
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_72ed126c42"
+        },
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_84ab6e7922"
+        }
+      ],
+      "case_id": "adv_001",
+      "confidence": 0.85,
+      "correct": true,
+      "cost_usd": 0.008263,
+      "determination": "denied",
+      "ground_truth": "denied",
+      "input_tokens": 1993,
+      "latency_ms": 12949.6169090271,
+      "output_tokens": 1254,
+      "reasoning_chain": "The clinical notes present a 55-year-old with chronic low back pain (4 months duration) and positive straight-leg raise on the right at 40 degrees. Conservative treatment has been attempted: 8 weeks of supervised physical therapy and NSAID trial without meaningful relief. However, critical disqualifying factors are present: (1) Prior lumbar MRI was performed 9 months ago and showed only mild multilevel degenerative changes without focal herniation. (2) The clinical notes explicitly state 'No new",
+      "retrieved_rule_ids": [
+        "rule_ffee54d490",
+        "rule_72ed126c42",
+        "rule_84ab6e7922"
+      ],
+      "seed": 11
+    },
+    {
+      "applied_rules": [
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_b0824d9cec"
+        },
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_b1007c4c6e"
+        },
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_0cce1bcfd7"
+        }
+      ],
+      "case_id": "adv_008",
+      "confidence": 0.88,
+      "correct": true,
+      "cost_usd": 0.0074730000000000005,
+      "determination": "denied",
+      "ground_truth": "denied",
+      "input_tokens": 1993,
+      "latency_ms": 10536.049365997314,
+      "output_tokens": 1096,
+      "reasoning_chain": "CPT 72148 is lumbar spine MRI. The patient is a 29-year-old with mechanical low back pain of 3 months duration following a known precipitant (CrossFit workout). Clinical presentation lacks red flags: no radiation, no neurological symptoms, normal strength/sensation, negative SLR test, and normal exam. The patient has already completed 8 weeks of physical therapy with documented improvement (pain 7/10 to 4/10). Imaging is requested for reassurance ('to make sure nothing serious is going on') rath",
+      "retrieved_rule_ids": [
+        "rule_b0824d9cec",
+        "rule_b1007c4c6e",
+        "rule_0cce1bcfd7"
+      ],
+      "seed": 11
+    },
+    {
+      "applied_rules": [
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_f27157fa3d"
+        },
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_72ed126c42"
+        },
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_ffee54d490"
+        }
+      ],
+      "case_id": "adv_009",
+      "confidence": 0.95,
+      "correct": true,
+      "cost_usd": 0.004254,
+      "determination": "approved",
+      "ground_truth": "approved",
+      "input_tokens": 949,
+      "latency_ms": 6103.682994842529,
+      "output_tokens": 661,
+      "reasoning_chain": "This case involves a 62-year-old patient with progressive low back pain and acute neurological deterioration characterized by foot drop and motor/sensory deficits consistent with L5 radiculopathy. Step-by-step analysis: (1) Clinical presentation: 4 weeks of low back pain with conservative treatment (PT \u00d7 6 sessions) followed by acute worsening with new neurological signs (foot drop, 3/5 tibialis anterior weakness, 4/5 extensor hallucis longus weakness, dermatomal L5 sensory loss). These objectiv",
+      "retrieved_rule_ids": [
+        "rule_f27157fa3d",
+        "rule_72ed126c42",
+        "rule_ffee54d490"
+      ],
+      "seed": 11
+    },
+    {
+      "applied_rules": [
+        {
+          "applied": true,
+          "rationale": "",
+          "rule_id": "rule_8f17120588"
+        },
+        {
+          "applied": true,
+          "rationale": "",
+          "rule_id": "rule_b0824d9cec"
+        },
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_8955246574"
+        }
+      ],
+      "case_id": "adv_011",
+      "confidence": 0.98,
+      "correct": true,
+      "cost_usd": 0.009379,
+      "determination": "approved",
+      "ground_truth": "approved",
+      "input_tokens": 1969,
+      "latency_ms": 14252.31671333313,
+      "output_tokens": 1482,
+      "reasoning_chain": "Step 1: Assess clinical presentation against medical necessity criteria. Patient is 58-year-old male presenting with acute coronary syndrome (ACS) indicators: crushing substernal chest pain at rest, elevated troponin (1.8, significantly above normal <0.04), and ECG with new T-wave inversions in V3-V6 territory. These findings are pathognomonic for acute myocardial infarction. Step 2: Evaluate CPT 93458 appropriateness. CPT 93458 is left heart catheterization with left ventriculography, the gold-",
+      "retrieved_rule_ids": [
+        "rule_8f17120588",
+        "rule_b0824d9cec",
+        "rule_8955246574"
+      ],
+      "seed": 11
+    },
+    {
+      "applied_rules": [
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_72ed126c42"
+        },
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_11295eae36"
+        },
+        {
+          "applied": false,
+          "rationale": "",
+          "rule_id": "rule_ffee54d490"
+        }
+      ],
+      "case_id": "adv_018",
+      "confidence": 0.78,
+      "correct": true,
+      "cost_usd": 0.010199,
+      "determination": "overturned_on_appeal",
+      "ground_truth": "overturned_on_appeal",
+      "input_tokens": 2144,
+      "latency_ms": 16394.687175750732,
+      "output_tokens": 1611,
+      "reasoning_chain": "Step 1: Verify clinical scenario and diagnosis. Patient is 54 y/o with newly diagnosed invasive ductal carcinoma (IDC), right breast, ER+/PR+/HER2-, T2N1M0 stage. This is node-positive disease (N1, one positive sentinel node). Step 2: Assess CPT 0001U (MammaPrint 70-gene assay) appropriateness for indication. MammaPrint has FDA approval and clinical validation specifically for breast cancer recurrence risk assessment, particularly in node-positive disease. The MINDACT trial (Microarray In Node-n",
+      "retrieved_rule_ids": [
+        "rule_72ed126c42",
+        "rule_11295eae36",
+        "rule_ffee54d490"
+      ],
+      "seed": 11
+    }
+  ],
+  "mode": "memory",
+  "runner_id": "claude-haiku-4-5-20251001:memory",
+  "seeds": [
+    11
+  ],
+  "split": "dev",
+  "version": "v0.1"
+}

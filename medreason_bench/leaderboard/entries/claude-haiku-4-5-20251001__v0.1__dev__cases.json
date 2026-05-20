@@ -1,0 +1,86 @@
+{
+  "cases": [
+    {
+      "applied_rules": [],
+      "case_id": "adv_001",
+      "confidence": 0.78,
+      "correct": true,
+      "cost_usd": 0.003397,
+      "determination": "denied",
+      "ground_truth": "denied",
+      "input_tokens": 767,
+      "latency_ms": 5962.209939956665,
+      "output_tokens": 526,
+      "reasoning_chain": "Patient is 55 years old with chronic low back pain (M51.16, M54.5) for 4 months requesting lumbar MRI (CPT 72148). Step-therapy requirement: Patient has completed 8 weeks supervised PT and NSAID trial, satisfying conservative treatment prerequisites. Clinical findings: positive straight-leg raise at 40 degrees (right), but intact strength and reflexes with no new neurological deficit documented. Prior imaging performed 9 months ago revealed only mild multilevel degenerative changes without focal",
+      "retrieved_rule_ids": [],
+      "seed": 11
+    },
+    {
+      "applied_rules": [],
+      "case_id": "adv_008",
+      "confidence": 0.88,
+      "correct": true,
+      "cost_usd": 0.003243,
+      "determination": "denied",
+      "ground_truth": "denied",
+      "input_tokens": 753,
+      "latency_ms": 5205.6074142456055,
+      "output_tokens": 498,
+      "reasoning_chain": "This is a 29-year-old with mechanical low back pain (M54.5) that has demonstrated significant improvement with conservative care. Clinical indicators support denial: (1) Pain has improved 43% (7/10 to 4/10) following 8 weeks of physical therapy and NSAIDs, demonstrating conservative treatment success. (2) Neurological exam is completely normal\u2014full strength, intact sensation, negative straight leg raise\u2014with no red flag findings suggesting structural pathology. (3) No radiation of pain or neurol",
+      "retrieved_rule_ids": [],
+      "seed": 11
+    },
+    {
+      "applied_rules": [],
+      "case_id": "adv_009",
+      "confidence": 0.92,
+      "correct": true,
+      "cost_usd": 0.003171,
+      "determination": "approved",
+      "ground_truth": "approved",
+      "input_tokens": 751,
+      "latency_ms": 5229.647159576416,
+      "output_tokens": 484,
+      "reasoning_chain": "This is a 62-year-old patient with progressive low back pain (M54.16) and acute neurological deterioration manifesting as foot drop with documented motor weakness (tibialis anterior 3/5, extensor hallucis longus 4/5) and dermatomal L5 sensory loss (consistent with G83.4 - cauda equina or lumbosacral plexus lesion pattern). Clinical presentation suggests possible cauda equina syndrome or acute nerve root compression. Prerequisites are satisfied: (1) Conservative treatment attempted with 3 weeks o",
+      "retrieved_rule_ids": [],
+      "seed": 11
+    },
+    {
+      "applied_rules": [],
+      "case_id": "adv_011",
+      "confidence": 0.96,
+      "correct": true,
+      "cost_usd": 0.002973,
+      "determination": "approved",
+      "ground_truth": "approved",
+      "input_tokens": 738,
+      "latency_ms": 5697.3466873168945,
+      "output_tokens": 447,
+      "reasoning_chain": "Patient is 58-year-old male presenting with acute coronary syndrome (ACS) with objective findings of myocardial injury: elevated troponin (1.8, significantly above normal <0.04), new ST-segment changes (T-wave inversions V3-V6 indicative of anterolateral ischemia), and characteristic crushing substernal chest pain at rest. CPT 93458 is left heart catheterization with left ventriculography and coronary arteriography, which is the appropriate diagnostic and therapeutic intervention for acute coron",
+      "retrieved_rule_ids": [],
+      "seed": 11
+    },
+    {
+      "applied_rules": [],
+      "case_id": "adv_018",
+      "confidence": 0.78,
+      "correct": true,
+      "cost_usd": 0.004908,
+      "determination": "overturned_on_appeal",
+      "ground_truth": "overturned_on_appeal",
+      "input_tokens": 833,
+      "latency_ms": 8302.945852279663,
+      "output_tokens": 815,
+      "reasoning_chain": "Step 1: Verify clinical diagnosis and staging. Patient has newly diagnosed invasive ductal carcinoma (IDC), ER+/PR+/HER2-, T2N1M0 (node-positive disease with 1 positive sentinel node). This is well-documented and appropriate for genomic testing consideration. Step 2: Assess medical necessity criteria for 70-gene assay (MammaPrint/0001U). The patient meets standard indications: early-stage breast cancer with hormone-receptor positivity requiring adjuvant therapy decision-making. Step 3: Evaluate ",
+      "retrieved_rule_ids": [],
+      "seed": 11
+    }
+  ],
+  "mode": "zero_shot",
+  "runner_id": "claude-haiku-4-5-20251001",
+  "seeds": [
+    11
+  ],
+  "split": "dev",
+  "version": "v0.1"
+}
