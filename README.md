@@ -11,40 +11,78 @@ Pick the side you're working on below.
 
 ## Drug Discovery Canvas (Next.js dashboard)
 
-An agentic in-silico drug discovery platform. A Gemini-powered agent simulates compound–protein interactions and stores outcomes in a live knowledge graph (PostgreSQL via Prisma). Each simulation run updates Bayesian confidence scores on interaction edges.
+An agentic in-silico drug discovery platform. A local Ollama agent (llama3.1) simulates compound–protein interactions and stores outcomes in a live knowledge graph (PostgreSQL via Prisma). Each simulation run updates Bayesian confidence scores on interaction edges, which propagate through protein–protein similarity networks to infer new drug–target relationships.
+
+The UI is a full-screen interactive force-directed graph — nodes are proteins and compounds, edges are interactions. Running a simulation highlights the relevant pathway in the graph.
+
+### Knowledge graph pipeline
+
+Three-stage ingestion builds the graph from public datasets:
+
+| Stage | Script | Source | Writes |
+|---|---|---|---|
+| 1. Drug–target binding | `scripts/ingest_chembl.py` | ChEMBL REST API | ~17 proteins, ~100 compounds, ~300 INHIBITS edges |
+| 2. Protein similarity | `scripts/ingest_string.py` | STRING REST API | ~156 SIMILAR\_TO edges (bidirectional) |
+| 3. Bayesian propagation | `POST /api/propagate` | Computed | ~700 inferred TARGETS edges |
+
+Propagation math: `inferred_conf = direct_conf × similarity_score × 0.7`. If a drug inhibits protein A with confidence 0.9 and protein B is 80% similar to A, the system infers the drug likely targets B with confidence ~0.5.
 
 ### Running locally
 
 **Prerequisites:** Docker, Node.js 18+, [Ollama](https://ollama.com)
 
 ```bash
-# 1. Pull the model (one-time)
+# 1. Pull the model (one-time, ~4 GB)
 ollama pull llama3.1
 
-# 2. Start the postgres database (from repo root)
-docker compose up -d
+# 2. Start Postgres
+docker compose up -d          # from repo root
 
-# 3. Install dependencies
+# 3. Install and configure
 cd dashboard
 npm install
+cp .env.example .env.local    # no API keys needed — fully local
 
-# 4. Configure environment
+# 4. Set up the database
+npm run db:generate
+npm run db:push
+npm run db:seed               # seeds 6 real proteins/drugs with literature edges
 
-cp .env.example .env.local
-# No API keys needed — Ollama runs fully local
-
-# 5. Set up the database
-npm run db:generate   # generate Prisma client
-npm run db:push       # push schema to DB
-npm run db:seed       # load real protein/drug seed data
-
-# 6. Start the app
-npm run dev           # → http://localhost:3000
+# 5. Start the app
+npm run dev                   # → http://localhost:3000
 ```
+
+#### Optional: populate the full knowledge graph
+
+After the app is running, run the ingestion pipeline to load real data from ChEMBL and STRING:
+
+```bash
+cd dashboard/scripts
+python3 -m venv .venv && source .venv/bin/activate
+pip install psycopg2-binary datasets
+
+# ChEMBL drug–target binding (takes ~3 min, hits ChEMBL + UniProt APIs)
+python ingest_chembl.py --limit 200
+
+# STRING protein–protein similarity
+python ingest_string.py --min-score 0.4
+
+# Bayesian propagation (infers new drug→protein edges through similarity)
+curl -X POST http://localhost:3000/api/propagate
+```
+
+Both scripts support `--dry-run` to preview without writing to the DB.
+
+### Using the UI
+
+- **Graph** — force-directed canvas fills the screen. Scroll to zoom, drag to pan, drag nodes to rearrange. Click any node for its detail card (name, molecular weight, external ID).
+- **Edge type toggles** — switch between Drug→Protein (direct binding), Similarity (STRING), and Inferred (Bayesian propagation) edge layers.
+- **Propagate button** — re-runs Bayesian propagation and refreshes the graph.
+- **Run simulation** — select a protein and compound, pick an example prompt or write your own, submit. The selected nodes glow in the graph and the agent response appears in the right panel.
 
 ### Sample prompts
 
-Click any example in the UI, or paste these directly:
+Click any example in the UI, or paste directly:
 
 **Imatinib × BCR-ABL (CML targeted therapy)**
 > Simulate Imatinib binding to BCR-ABL at 0.1 µM. Predict efficacy and toxicity, explain what the Bayesian confidence score means, and summarize what this simulation adds to our knowledge.
@@ -55,9 +93,9 @@ Click any example in the UI, or paste these directly:
 **Aspirin × COX-2 (anti-inflammatory)**
 > Model COX-2 inhibition by Aspirin at 5 µM. Explain the irreversible acetylation mechanism and quantify the expected confidence shift.
 
-### Seeded knowledge graph
+### Seed knowledge graph (db:seed)
 
-| Node | Type | Description |
+| Node | Type | Details |
 |---|---|---|
 | BCR-ABL | Protein | BCR-ABL fusion tyrosine kinase — driver of CML |
 | EGFR | Protein | Epidermal Growth Factor Receptor — target in NSCLC |
@@ -66,22 +104,33 @@ Click any example in the UI, or paste these directly:
 | Gefitinib | Compound | Iressa / ZD1839 · 446.9 Da — EGFR inhibitor for NSCLC |
 | Aspirin | Compound | Acetylsalicylic acid · 180.2 Da — irreversible COX-2 inhibitor |
 
+After running the full pipeline: ~115 nodes (17 proteins + ~96 compounds) and ~980 edges.
+
 ### Dashboard project structure
 
 ```
-dashboard/           ← Next.js app
+dashboard/
   app/
-    api/simulate/    ← POST — runs the Gemini agent
-    api/graph/       ← GET  — queries the knowledge graph
-  components/        ← SimulationPanel, ResultPanel, GraphView
+    api/simulate/       ← POST — runs the Ollama agent
+    api/graph/          ← GET  — queries the knowledge graph
+    api/propagate/      ← POST — runs Bayesian confidence propagation
+  components/
+    GraphView.tsx       ← interactive force-directed graph (react-force-graph-2d)
+    SimulationPanel.tsx ← node selector + prompt input
+    ResultPanel.tsx     ← agent response + Bayesian update log
   lib/
-    agentEngine.ts   ← Ollama tool-calling loop (llama3.1, fully local)
-    memoryManager.ts ← Sub-graph extraction + Bayesian updates
-    types.ts         ← Domain interfaces
+    agentEngine.ts      ← Ollama tool-calling loop (llama3.1, fully local)
+    memoryManager.ts    ← sub-graph extraction + Bayesian confidence updates
+    propagation.ts      ← cross-target confidence propagation via SIMILAR_TO edges
+    types.ts            ← domain interfaces
   prisma/
-    schema.prisma    ← Node, Edge, ProvenanceEntry, AgentSession tables
-    seed.ts          ← Real drug/protein seed data
-docker-compose.yml   ← pgvector/postgres on port 5432
+    schema.prisma       ← Node, Edge, ProvenanceEntry, AgentSession tables
+    seed.ts             ← real drug/protein seed data (literature-sourced confidence)
+  scripts/
+    ingest_chembl.py    ← ChEMBL + UniProt ingestion (proteins, compounds, INHIBITS edges)
+    ingest_string.py    ← STRING protein similarity ingestion (SIMILAR_TO edges)
+    ingest_rxrx3.py     ← Recursion rxrx3-core phenomics ingestion (streaming, no images)
+docker-compose.yml      ← pgvector/postgres on port 5432
 ```
 
 ---
@@ -136,19 +185,19 @@ python -m pytest tests/test_targetval_topology.py \
 
 | Command | Purpose |
 |---|---|
-| `python -m medreason_bench data build --source {lcd,adversarial,lcd_edge,aetna_lumbar,drugdisc,combined} --version v0.0 --seed 42` | Parse policy + build stratified manifest. Source choices: LCD template-expanded, v0.1 adversarial, 30-case LCD edge xlsx, 60-case Aetna lumbar MRI, 25-case drug-discovery lead-op, or combined. |
+| `python -m medreason_bench data build --source {lcd,adversarial,lcd_edge,aetna_lumbar,drugdisc,combined} --version v0.0 --seed 42` | Parse policy + build stratified manifest. |
 | `python -m medreason_bench splits verify --version v0.2` | Re-hash a manifest and confirm LeakGuard compatibility. |
-| `python -m medreason_bench train --version v0.2 --split train --model haiku --gate-k 5 [--abstract-rules] [--include-failures] [--multi-policy]` | Populate the memory store from a training split. Honors `--critic-model` and `--proposer-model` overrides. |
-| `python -m medreason_bench eval --runner claude --model sonnet --memory --split test --version v0.2 --seeds 1 2 3` | Run an AgentRunner against a split. Supports `--include-policy` (RAG), `--policy-max-chars` (sparse-RAG), `--rerank`, `--top-k`. Writes leaderboard entries under `medreason_bench/leaderboard/entries/`. |
+| `python -m medreason_bench train --version v0.2 --split train --model haiku --gate-k 5 [--abstract-rules] [--include-failures] [--multi-policy]` | Populate the memory store from a training split. |
+| `python -m medreason_bench eval --runner claude --model sonnet --memory --split test --version v0.2 --seeds 1 2 3` | Run an AgentRunner against a split. Writes leaderboard entries under `medreason_bench/leaderboard/entries/`. |
 
 ### CLI: `python -m medreason_bench.targetval` (target validation product, Phase 2)
 
 | Command | Purpose |
 |---|---|
-| `python -m medreason_bench.targetval data build-mapk-retro --version v0.2 --out mapk_v0_2.jsonl` | Materialize the curated MAPK retrospective fixture (~22 BRAF/MEK/ERK/KRAS/NRAS/EGFR/MET/ALK targets with public-literature outcomes + bypass mechanisms). Universal-layer-safe. |
-| `python -m medreason_bench.targetval data ingest-customer --customer recursion --targets targets.csv [--outcomes outcomes.jsonl]` | Ingest a customer's CSV/JSONL of targets into Campaign-layer cases. Stamps `customer_tag` on every `InternalEvidence` so the layer policy can enforce per-tenant boundaries. Returns an `IngestReport` with `n_cases` / `n_rejected`. |
-| `python -m medreason_bench.targetval swarm dryrun [--campaign recursion] [--seeds 1 2 3] [--no-memory]` | Run the 1-agent-per-target swarm against a campaign's case set using the fake LLM (`FakeLLMClient`). No real API calls. Prints per-target memos + aggregate ranking. |
-| `python -m medreason_bench.targetval card write --out prediction.json` | Write a deterministic `TargetValPredictionCard` (SHA-256-stable serialization) for the current prediction state. Schema parallel to `medreason_bench/leadop/prediction_card.py`. |
+| `python -m medreason_bench.targetval data build-mapk-retro --version v0.2 --out mapk_v0_2.jsonl` | Materialize the curated MAPK retrospective fixture (~22 targets). |
+| `python -m medreason_bench.targetval data ingest-customer --customer recursion --targets targets.csv [--outcomes outcomes.jsonl]` | Ingest a customer's CSV/JSONL of targets into Campaign-layer cases. |
+| `python -m medreason_bench.targetval swarm dryrun [--campaign recursion] [--seeds 1 2 3] [--no-memory]` | Run the 1-agent-per-target swarm using the fake LLM. No real API calls. |
+| `python -m medreason_bench.targetval card write --out prediction.json` | Write a deterministic `TargetValPredictionCard` (SHA-256-stable). |
 
 ### Python research project structure
 
@@ -170,8 +219,8 @@ medreason/                       ← Veridicus core (institutional reasoning mem
     swarm.py                     ← SwarmAgent + SwarmRunner (parallel via ThreadPoolExecutor)
     swarm_prompts.py             ← Per-target prompt template
     swarm_parsing.py             ← 4-strategy tolerant JSON parser + safe_parse_memo fallback
-    layers.py                    ← Layer enum + LayerPolicy + LayerRouter (ingest_rule, promote_rule, retrieve_for_case)
-    layer_stores.py              ← TargetvalRuleStore adapter + InMemoryRuleStore (no-persistence path)
+    layers.py                    ← Layer enum + LayerPolicy + LayerRouter
+    layer_stores.py              ← TargetvalRuleStore adapter + InMemoryRuleStore
     cross_agent_analyzer.py      ← THE MOAT: detect_systematic_errors + propose_corrective_rules
     cross_agent_prompts.py       ← Rule-proposer prompt template + repair suffix
 
@@ -183,16 +232,11 @@ medreason_bench/                 ← MedReason-Bench public benchmark
   leadop/                        ← Lead-op SAR direction benchmark (Crizotinib retro etc.)
   targetval/                     ← Phase 2 benchmark side
     mapk_retro.py                ← build_mapk_retro_seed() — 22 curated MAPK cases (v0.2)
-    mapk_retro_data.py           ← Outcome / bypass mechanism mix
-    mapk_retro_entries.py        ← Case entries 1-N
-    mapk_retro_entries_extra.py  ← Case entries N+1-22
     schemas.py                   ← DuckDB tables (targets, bypass_outcomes, targetval_meta)
     recursion_ingest.py          ← Customer CSV/JSONL ingest with IngestReport
-    customer_csv.py              ← parse_jsonl + parse_parquet (lazy pyarrow)
-    synthetic.py                 ← 3 toy targets (BRAF/KRAS/EGFR) for smoke testing
     metrics.py                   ← top_k_target_hit + bypass_precision_recall + bootstrap_ci
-    prediction_card.py           ← TargetValPredictionCard + TargetValPredictionEnvelope (SHA-256)
-    __main__.py                  ← CLI surface (the table above)
+    prediction_card.py           ← TargetValPredictionCard (SHA-256)
+    __main__.py                  ← CLI surface
 
 tests/                           ← 567 tests; 118 are targetval (tests/test_targetval_*.py)
 docs/

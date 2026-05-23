@@ -26,9 +26,13 @@ function mapNode(row: Prisma.NodeGetPayload<object>): CustomNode {
     name: row.name,
     type: row.type as CustomNode['type'],
     metadata: {
-      molecularWeight: row.molecularWeight ?? undefined,
-      dangerLevel: (row.dangerLevel as CustomNode['metadata']['dangerLevel']) ?? undefined,
+      molecularWeight:  row.molecularWeight ?? undefined,
+      dangerLevel:      (row.dangerLevel as CustomNode['metadata']['dangerLevel']) ?? undefined,
       originDepartment: row.originDepartment,
+      smiles:      (row as Record<string, unknown>).smiles      as string   | undefined ?? undefined,
+      externalId:  (row as Record<string, unknown>).externalId  as string   | undefined ?? undefined,
+      sequence:    (row as Record<string, unknown>).sequence    as string   | undefined ?? undefined,
+      goTerms:     (row as Record<string, unknown>).goTerms     as string[] | undefined ?? undefined,
     },
   };
 }

@@ -246,6 +246,7 @@ export class AgentEngine {
               provenanceEntry: {
                 agentReasoningSnapshot: `Agent run: ${sim.logSummary}`,
                 simulationSource: 'MOCK_TOOL',
+                evidenceWeight: 1.0,
                 observedOutcome: outcome,
               },
             });

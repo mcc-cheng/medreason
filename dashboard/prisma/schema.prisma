@@ -10,12 +10,16 @@ datasource db {
 // ─── Knowledge Graph Nodes ────────────────────────────────────
 
 model Node {
-  id               String   @id          // e.g. "GLOW-SQUID-9"
+  id               String   @id
   name             String
   type             NodeType
   molecularWeight  Float?
   dangerLevel      DangerLevel?
   originDepartment String
+  smiles           String?  // canonical SMILES string for compounds
+  externalId       String?  // e.g. "rxrx3:BRCA1", "uniprot:P00533", "chembl:CHEMBL203"
+  sequence         String?  // amino acid sequence (proteins)
+  goTerms          String[] // GO term IDs, e.g. ["GO:0004672"]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -67,10 +71,13 @@ model Edge {
 }
 
 enum EdgeInteractionType {
-  INHIBITS
-  ACTIVATES
-  BINDS
-  ALLOSTERIC_MODULATOR
+  INHIBITS             // direct experimental inhibition
+  ACTIVATES            // direct experimental activation
+  BINDS                // binding without clear functional outcome
+  ALLOSTERIC_MODULATOR // allosteric modulation
+  SIMILAR_TO           // protein–protein structural/sequence similarity
+  TARGETS              // inferred drug–protein (from Bayesian propagation)
+  ASSOCIATED_WITH      // gene–disease association
 }
 
 // ─── Provenance ───────────────────────────────────────────────
@@ -94,6 +101,10 @@ enum SimulationSource {
   MOCK_TOOL
   USER_DIRECT_OVERWRITE
   RAG_LITERATURE
+  RXRX3_PHENOMICS
+  CHEMBL
+  UNIPROT_STRING
+  BAYESIAN_PROPAGATION
 }
 
 enum ObservedOutcome {

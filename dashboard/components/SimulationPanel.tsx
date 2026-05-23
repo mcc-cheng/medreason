@@ -28,7 +28,7 @@ const EXAMPLES = [
 ];
 
 interface Props {
-  onResult: (result: AgentRunOutput) => void;
+  onResult: (result: AgentRunOutput, focalNodeIds: string[]) => void;
 }
 
 export default function SimulationPanel({ onResult }: Props) {
@@ -68,7 +68,7 @@ export default function SimulationPanel({ onResult }: Props) {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Simulation failed');
-      onResult(data as AgentRunOutput);
+      onResult(data as AgentRunOutput, selectedNodes);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {

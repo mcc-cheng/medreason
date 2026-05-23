@@ -15,6 +15,10 @@ export interface CustomNode {
     molecularWeight?: number;
     dangerLevel?: 'LOW' | 'MEDIUM' | 'CHAOTIC';
     originDepartment: string;
+    smiles?: string;
+    externalId?: string;
+    sequence?: string;
+    goTerms?: string[];
   };
 }
 
@@ -24,12 +28,15 @@ export type EdgeInteractionType =
   | 'INHIBITS'
   | 'ACTIVATES'
   | 'BINDS'
-  | 'ALLOSTERIC_MODULATOR';
+  | 'ALLOSTERIC_MODULATOR'
+  | 'SIMILAR_TO'
+  | 'TARGETS'
+  | 'ASSOCIATED_WITH';
 
 export interface ProvenanceEntry {
   timestamp: string; // ISO-8601
   agentReasoningSnapshot: string;
-  simulationSource: 'MOCK_TOOL' | 'USER_DIRECT_OVERWRITE' | 'RAG_LITERATURE';
+  simulationSource: 'MOCK_TOOL' | 'USER_DIRECT_OVERWRITE' | 'RAG_LITERATURE' | 'RXRX3_PHENOMICS' | 'CHEMBL' | 'UNIPROT_STRING' | 'BAYESIAN_PROPAGATION';
   evidenceWeight: number;
   observedOutcome: 'SUPPORT' | 'CONTRADICT' | 'AMBIGUOUS';
 }
