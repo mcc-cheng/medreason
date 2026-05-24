@@ -56,15 +56,17 @@
     box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06);
   }
 
-  /* Liquid glass refraction */
+  /* Liquid glass refraction — used by floating panels above the full-screen graph.
+     Opacity 0.55 keeps the graph faintly visible behind; backdrop-blur preserves text
+     contrast against bright nodes. */
   .glass-refract {
-    background: rgba(19, 19, 22, 0.8);
-    backdrop-filter: blur(24px) saturate(1.2);
-    -webkit-backdrop-filter: blur(24px) saturate(1.2);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(15, 15, 18, 0.55);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      0 0 0 0.5px rgba(255, 255, 255, 0.02);
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 8px 32px -12px rgba(0, 0, 0, 0.6);
   }
 
   /* Accent glow — subtle, desaturated */
@@ -87,6 +89,18 @@
 
   .shadow-diffuse-sm {
     box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Reduced motion — disable non-essential animations/transitions when the user asks. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

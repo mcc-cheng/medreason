@@ -14,10 +14,10 @@ export default function ResultPanel({ result }: Props) {
       {/* Header */}
       <div className="px-4 py-3 border-b border-white/[0.04] flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" aria-hidden="true" />
           <h2 className="text-sm font-semibold text-white">Agent Response</h2>
         </div>
-        <div className="flex items-center gap-3 text-[10px] text-zinc-600 font-mono">
+        <div className="flex items-center gap-3 text-xs text-zinc-400 font-mono tabular-nums">
           <span>{toolCallsExecuted.length} calls</span>
           <span>{graphMutations.edgesUpserted.length} edges</span>
           <span>{totalTokensUsed.toLocaleString()} tok</span>
@@ -36,30 +36,33 @@ export default function ResultPanel({ result }: Props) {
         {/* Bayesian confidence updates */}
         {graphMutations.confidenceUpdates.length > 0 && (
           <div>
-            <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-2">Bayesian updates</p>
+            <p className="text-xs text-zinc-400 uppercase tracking-widest mb-2 font-medium">Bayesian updates</p>
             <div className="space-y-1.5">
               {graphMutations.confidenceUpdates.map((u) => {
                 const delta    = u.updatedConfidence - u.previousConfidence;
                 const improved = delta > 0;
+                const arrow    = improved ? '↑' : '↓';
                 return (
                   <div
                     key={u.edgeId}
-                    className="flex items-center justify-between px-3 py-2 rounded-lg"
+                    className="flex items-center justify-between px-3 py-2 rounded-lg gap-3"
                     style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}
                   >
-                    <span className="text-[10px] text-zinc-600 font-mono truncate max-w-[120px]">
+                    <span className="text-xs text-zinc-400 font-mono truncate flex-1 min-w-0">
                       {u.edgeId.slice(0, 14)}…
                     </span>
-                    <div className="flex items-center gap-2 text-[10px] font-mono flex-shrink-0">
-                      <span className="text-zinc-500">{(u.previousConfidence * 100).toFixed(1)}%</span>
-                      <span className="text-zinc-700">→</span>
-                      <span className={improved ? 'text-emerald-400' : 'text-red-400'}>
+                    <div className="flex items-center gap-2 text-xs font-mono flex-shrink-0 tabular-nums">
+                      <span className="text-zinc-400">{(u.previousConfidence * 100).toFixed(1)}%</span>
+                      <ArrowRightIcon />
+                      <span className={improved ? 'text-emerald-300' : 'text-red-300'}>
                         {(u.updatedConfidence * 100).toFixed(1)}%
                       </span>
                       <span
-                        className={`px-1.5 py-0.5 rounded ${improved ? 'text-emerald-400 bg-emerald-400/10' : 'text-red-400 bg-red-400/10'}`}
+                        aria-label={`${improved ? 'increased' : 'decreased'} by ${Math.abs(delta * 100).toFixed(1)} percent`}
+                        className={`px-1.5 py-0.5 rounded inline-flex items-center gap-0.5 ${improved ? 'text-emerald-300 bg-emerald-400/10' : 'text-red-300 bg-red-400/10'}`}
                       >
-                        {improved ? '+' : ''}{(delta * 100).toFixed(1)}%
+                        <span aria-hidden="true">{arrow}</span>
+                        <span>{improved ? '+' : ''}{(delta * 100).toFixed(1)}%</span>
                       </span>
                     </div>
                   </div>
@@ -72,18 +75,18 @@ export default function ResultPanel({ result }: Props) {
         {/* Tool call log — collapsed by default */}
         {toolCallsExecuted.length > 0 && (
           <details>
-            <summary className="text-[10px] text-zinc-600 uppercase tracking-widest cursor-pointer hover:text-zinc-400 transition-colors select-none">
+            <summary className="text-xs text-zinc-400 uppercase tracking-widest cursor-pointer hover:text-zinc-200 transition-colors select-none font-medium">
               Tool log · {toolCallsExecuted.length} calls
             </summary>
             <div className="mt-2 space-y-1.5">
               {toolCallsExecuted.map((tc) => (
                 <div
                   key={tc.toolCallId}
-                  className="px-3 py-2 rounded-lg text-[10px] font-mono"
+                  className="px-3 py-2 rounded-lg text-xs font-mono leading-relaxed break-words"
                   style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}
                 >
-                  <span className="text-violet-400">{tc.toolName}</span>
-                  <span className="text-zinc-700 ml-2">{JSON.stringify(tc.input)}</span>
+                  <span className="text-violet-300">{tc.toolName}</span>
+                  <span className="text-zinc-500 ml-2">{JSON.stringify(tc.input)}</span>
                 </div>
               ))}
             </div>
@@ -91,5 +94,14 @@ export default function ResultPanel({ result }: Props) {
         )}
       </div>
     </div>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-zinc-500">
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="13 6 19 12 13 18" />
+    </svg>
   );
 }

@@ -16,9 +16,12 @@ export default function Home() {
   }
 
   return (
-    <main className="flex flex-col" style={{ background: '#09090B', height: '100dvh' }}>
-      {/* Header */}
-      <header className="flex-shrink-0 border-b border-white/[0.04] px-5 py-3">
+    <main className="relative w-screen overflow-hidden" style={{ background: '#09090B', height: '100dvh' }}>
+      {/* Full-screen graph — background layer */}
+      <GraphView highlightNodes={highlightNodes} />
+
+      {/* Floating header — full-width translucent glass bar, matches all other floating panels */}
+      <header className="absolute top-0 left-0 right-0 z-30 px-5 py-3 glass-refract">
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg">
@@ -33,30 +36,24 @@ export default function Home() {
             </div>
             <div>
               <h1 className="text-sm font-semibold text-white tracking-tight">Drug Discovery Canvas</h1>
-              <p className="text-xs text-zinc-500">In-silico compound–protein simulation</p>
+              <p className="text-xs text-zinc-400">In-silico compound–protein simulation</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-600 font-mono">llama3.1 · local</span>
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
+            <span className="text-xs text-zinc-400 font-mono">llama3.1 · local</span>
+            <span className="sr-only">connected</span>
+            <div aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
           </div>
         </div>
       </header>
 
-      {/* Main: graph left, panel right */}
-      <div className="flex-1 min-h-0 max-w-screen-2xl mx-auto w-full px-5 py-4">
-        <div className="h-full grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4">
-
-          {/* Graph — fills available height */}
-          <GraphView highlightNodes={highlightNodes} />
-
-          {/* Right panel — scrollable */}
-          <div className="flex flex-col gap-4 min-h-0 overflow-y-auto">
-            <SimulationPanel onResult={handleResult} />
-            {result && <ResultPanel result={result} />}
-          </div>
-
-        </div>
+      {/* Floating right panel — Run Simulation + Result float over the graph */}
+      <div
+        className="absolute right-4 z-30 w-[360px] flex flex-col gap-4 overflow-y-auto"
+        style={{ top: '72px', bottom: '16px' }}
+      >
+        <SimulationPanel onResult={handleResult} />
+        {result && <ResultPanel result={result} />}
       </div>
     </main>
   );

@@ -86,7 +86,7 @@ export default function SimulationPanel({ onResult }: Props) {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold text-white">Run Simulation</h2>
-            <p className="text-xs text-zinc-500 mt-0.5">Select targets, then describe the experiment</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Select targets, then describe the experiment</p>
           </div>
           {loading && (
             <div className="flex items-center gap-1.5 text-xs text-violet-400">
@@ -118,16 +118,16 @@ export default function SimulationPanel({ onResult }: Props) {
 
         {/* Example prompts */}
         <div>
-          <p className="text-xs text-zinc-600 uppercase tracking-widest mb-2">Example experiments</p>
+          <p className="text-xs text-zinc-400 uppercase tracking-widest mb-2 font-medium">Example experiments</p>
           <div className="space-y-1.5">
             {EXAMPLES.map((ex, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => applyExample(ex)}
-                className="w-full text-left px-3 py-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] hover:border-white/[0.08] transition-all group"
+                className="w-full text-left px-3 py-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] hover:border-white/[0.08] transition-all group cursor-pointer"
               >
-                <p className="text-xs text-zinc-400 group-hover:text-zinc-200 transition-colors leading-relaxed line-clamp-2">
+                <p className="text-xs text-zinc-300 group-hover:text-zinc-100 transition-colors leading-relaxed line-clamp-2">
                   {ex.prompt}
                 </p>
               </button>
@@ -138,8 +138,12 @@ export default function SimulationPanel({ onResult }: Props) {
         {/* Prompt input */}
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="relative">
+            <label htmlFor="sim-prompt" className="block text-xs text-zinc-400 uppercase tracking-widest mb-1.5 font-medium">
+              Experiment prompt
+            </label>
             <textarea
-              className="w-full rounded-xl px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 resize-none focus:outline-none transition-all"
+              id="sim-prompt"
+              className="w-full rounded-xl px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 resize-none focus:outline-none transition-all"
               style={{
                 background: 'rgba(255,255,255,0.03)',
                 border: '1px solid rgba(255,255,255,0.06)',
@@ -162,7 +166,7 @@ export default function SimulationPanel({ onResult }: Props) {
           <button
             type="submit"
             disabled={loading || !prompt.trim()}
-            className="relative w-full py-2.5 rounded-xl text-sm font-medium text-white transition-all overflow-hidden disabled:opacity-30 disabled:cursor-not-allowed"
+            className="relative w-full py-3 rounded-xl text-sm font-medium text-white transition-all overflow-hidden disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer min-h-[44px]"
             style={{
               background: loading || !prompt.trim()
                 ? 'rgba(255,255,255,0.05)'
@@ -187,7 +191,7 @@ export default function SimulationPanel({ onResult }: Props) {
         </form>
 
         {error && (
-          <div className="rounded-xl px-4 py-3 text-xs text-red-300 leading-relaxed"
+          <div role="alert" className="rounded-xl px-4 py-3 text-xs text-red-300 leading-relaxed"
             style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)' }}>
             {error}
           </div>
@@ -214,7 +218,7 @@ function NodeGroup({
 
   return (
     <div>
-      <p className="text-xs text-zinc-600 uppercase tracking-widest mb-1.5">{label}</p>
+      <p className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 font-medium">{label}</p>
       <div className="grid grid-cols-3 gap-1.5">
         {nodes.map((n) => {
           const on = selected.includes(n.id);
@@ -223,7 +227,9 @@ function NodeGroup({
               key={n.id}
               type="button"
               onClick={() => onToggle(n.id)}
-              className="relative text-left px-3 py-2 rounded-lg transition-all"
+              aria-pressed={on}
+              aria-label={`${n.label}, ${n.sub}${on ? ', selected' : ''}`}
+              className="relative text-left px-3 py-2 rounded-lg transition-all cursor-pointer min-h-[44px]"
               style={{
                 background: on ? active.bg : inactive.bg,
                 border: `1px solid ${on ? active.border : inactive.border}`,
@@ -233,13 +239,13 @@ function NodeGroup({
               <div className="flex items-center gap-1.5 mb-0.5">
                 <span
                   className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  style={{ background: on ? active.dot : '#3f3f46' }}
+                  style={{ background: on ? active.dot : '#71717a' }}
                 />
-                <span className={`text-xs font-mono font-medium ${on ? 'text-white' : 'text-zinc-400'}`}>
+                <span className={`text-xs font-mono font-medium ${on ? 'text-white' : 'text-zinc-300'}`}>
                   {n.label}
                 </span>
               </div>
-              <p className="text-[10px] text-zinc-600 leading-tight pl-3">{n.sub}</p>
+              <p className="text-xs text-zinc-500 leading-tight pl-3">{n.sub}</p>
             </button>
           );
         })}
