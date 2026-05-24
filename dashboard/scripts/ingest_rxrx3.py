@@ -1,18 +1,29 @@
 """
-ingest_rxrx3.py — Load rxrx3-core compound/gene data into the Drug Discovery Canvas
-knowledge graph (PostgreSQL via direct psycopg2 inserts).
+ingest_rxrx3.py — Load rxrx3-core into the Drug Discovery Canvas knowledge graph.
 
-Only metadata and DTI annotations are downloaded — the 18 GB image corpus is skipped.
+The dataset has two perturbation types:
+  - COMPOUND: small molecule applied to HUVEC cells → phenotypic embedding captured
+  - CRISPR:   gene knockout applied to HUVEC cells  → phenotypic embedding captured
+
+Compound→gene interaction scores are derived by cosine similarity between the
+mean phenotypic embedding of each compound and each gene knockout. When a compound
+produces a cellular phenotype similar to knocking out a gene, it suggests that
+compound acts (at least partially) through that gene's pathway.
+
+Downloads only the metadata CSV and OpenPhenom embeddings (~510 MB total).
+The 18 GB image corpus is skipped entirely.
 
 Usage:
-    pip install datasets huggingface_hub psycopg2-binary python-dotenv
-    python dashboard/scripts/ingest_rxrx3.py [--limit 200] [--dry-run] [--genes-only]
+    python dashboard/scripts/ingest_rxrx3.py [--top-k 5] [--min-sim 0.5] [--dry-run]
 
 Flags:
-    --limit N       max compound nodes to import (default 200)
-    --dry-run       print what would be inserted, no DB writes
-    --genes-only    only upsert gene nodes, skip compounds and edges
+    --top-k N      top-N gene targets per compound to insert as edges (default 5)
+    --min-sim F    minimum cosine similarity to include (default 0.5)
+    --dry-run      print plan without writing to DB
+    --max-compounds N  cap compounds ingested (default: all 1674)
 """
+
+from __future__ import annotations
 
 import argparse
 import os
@@ -21,247 +32,260 @@ import sys
 import uuid
 from pathlib import Path
 
-# ── Env ───────────────────────────────────────────────────────
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def load_env() -> str:
-    """Return DATABASE_URL from dashboard/.env.local (or environment)."""
-    env_path = Path(__file__).parent.parent / ".env.local"
-    if env_path.exists():
-        for line in env_path.read_text().splitlines():
-            line = line.strip()
-            if line.startswith("DATABASE_URL="):
-                return line.split("=", 1)[1].strip().strip('"').strip("'")
-    url = os.environ.get("DATABASE_URL")
+    for candidate in [
+        Path(__file__).parent.parent / ".env.local",
+        Path(__file__).parent.parent / ".env",
+    ]:
+        if candidate.exists():
+            for line in candidate.read_text().splitlines():
+                line = line.strip()
+                if line.startswith("DATABASE_URL="):
+                    return line.split("=", 1)[1].strip().strip('"').strip("'")
+    url = os.environ.get("DATABASE_URL", "")
     if not url:
-        sys.exit("DATABASE_URL not found in dashboard/.env.local or environment")
+        sys.exit("DATABASE_URL not found in dashboard/.env or dashboard/.env.local")
     return url
 
 
-# ── EC50 → Bayesian confidence ────────────────────────────────
-
-def ec50_to_confidence(ec50_um: float) -> float:
-    """Sigmoid: 0.1 µM → 0.91  |  10 µM → 0.5  |  100 µM → 0.09"""
-    return round(1.0 / (1.0 + ec50_um / 10.0), 4)
+def sanitize_id(s: str, max_len: int = 48) -> str:
+    return re.sub(r"[^A-Z0-9_\-]", "-", s.upper().strip())[:max_len]
 
 
-def confidence_to_priors(conf: float) -> tuple[float, float]:
-    """Return (alpha, beta) pseudo-counts summing to 10."""
-    alpha = round(conf * 10, 2)
-    beta  = round(10 - alpha, 2)
-    return max(alpha, 0.1), max(beta, 0.1)
+def cosine_sim_matrix(A, B):
+    """Return (n_A, n_B) cosine similarity matrix. A: (n,d), B: (m,d)."""
+    import numpy as np
+    A_norm = A / (np.linalg.norm(A, axis=1, keepdims=True) + 1e-9)
+    B_norm = B / (np.linalg.norm(B, axis=1, keepdims=True) + 1e-9)
+    return A_norm @ B_norm.T   # (n, m)
 
 
-# ── Node ID helpers ───────────────────────────────────────────
-
-def gene_node_id(gene: str) -> str:
-    return re.sub(r"[^A-Z0-9_-]", "-", gene.upper().strip())
-
-
-def compound_node_id(name: str) -> str:
-    return re.sub(r"[^A-Z0-9_-]", "-", name.upper().strip())[:48]
+def sim_to_confidence(sim: float) -> float:
+    """Map cosine similarity [-1,1] → Bayesian confidence [0,1]."""
+    return round(max(0.0, float(sim)), 4)
 
 
-# ── DB upserts ────────────────────────────────────────────────
-
-def upsert_node(cur, node_id: str, name: str, node_type: str,
-                mw: float | None, external_id: str, smiles: str | None,
-                dry_run: bool) -> None:
-    if dry_run:
-        print(f"  [node] {node_id} | {node_type} | {name[:60]}")
-        return
+def upsert_node(cur, node_id, name, node_type, smiles, external_id):
     cur.execute(
         """
-        INSERT INTO "Node" (id, name, type, "molecularWeight", "dangerLevel",
-                            "originDepartment", smiles, "externalId",
-                            "createdAt", "updatedAt")
-        VALUES (%s, %s, %s::"NodeType", %s, NULL, %s, %s, %s, NOW(), NOW())
+        INSERT INTO "Node"
+          (id, name, type, "molecularWeight", "dangerLevel", "originDepartment",
+           smiles, "externalId", "createdAt", "updatedAt")
+        VALUES (%s, %s, %s::"NodeType", NULL, NULL, %s, %s, %s, NOW(), NOW())
         ON CONFLICT (id) DO UPDATE
-          SET name        = EXCLUDED.name,
-              smiles      = COALESCE(EXCLUDED.smiles, "Node".smiles),
-              "externalId"= COALESCE(EXCLUDED."externalId", "Node"."externalId"),
-              "updatedAt" = NOW()
+          SET name         = EXCLUDED.name,
+              smiles       = COALESCE(EXCLUDED.smiles, "Node".smiles),
+              "externalId" = COALESCE(EXCLUDED."externalId", "Node"."externalId"),
+              "updatedAt"  = NOW()
         """,
-        (node_id, name, node_type, mw, "rxrx3-core", smiles, external_id),
+        (node_id, name, node_type, "rxrx3-core", smiles, external_id),
     )
 
 
-def upsert_edge_with_provenance(cur, source_id: str, target_id: str,
-                                 interaction: str, confidence: float,
-                                 obs_count: int, alpha: float, beta: float,
-                                 reasoning: str, dry_run: bool) -> None:
-    if dry_run:
-        print(f"  [edge] {source_id} --[{interaction} conf={confidence}]--> {target_id}")
-        return
+def upsert_edge(cur, source_id, target_id, confidence, obs_count, reasoning):
+    alpha = round(confidence * 10, 2)
+    beta  = round(10 - alpha, 2)
+    alpha = max(alpha, 0.1)
+    beta  = max(beta,  0.1)
 
     cur.execute(
         """
-        INSERT INTO "Edge" (id, "sourceId", "targetId", "interactionType"::"EdgeInteractionType",
-                            "confidenceScore", "observationCount",
-                            "priorAlpha", "priorBeta", "createdAt", "updatedAt")
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+        INSERT INTO "Edge"
+          (id, "sourceId", "targetId", "interactionType"::"EdgeInteractionType",
+           "confidenceScore", "observationCount",
+           "priorAlpha", "priorBeta", "createdAt", "updatedAt")
+        VALUES (%s, %s, %s, 'TARGETS', %s, %s, %s, %s, NOW(), NOW())
         ON CONFLICT ("sourceId", "targetId", "interactionType") DO UPDATE
-          SET "confidenceScore"  = EXCLUDED."confidenceScore",
+          SET "confidenceScore"  = GREATEST("Edge"."confidenceScore", EXCLUDED."confidenceScore"),
               "observationCount" = EXCLUDED."observationCount",
               "priorAlpha"       = EXCLUDED."priorAlpha",
               "priorBeta"        = EXCLUDED."priorBeta",
               "updatedAt"        = NOW()
         RETURNING id
         """,
-        (str(uuid.uuid4()), source_id, target_id, interaction,
-         confidence, obs_count, alpha, beta),
+        (str(uuid.uuid4()), source_id, target_id, confidence, obs_count, alpha, beta),
     )
     row = cur.fetchone()
     if row:
-        edge_id = row[0]
         cur.execute(
             """
             INSERT INTO "ProvenanceEntry"
-              (id, "edgeId", "agentReasoningSnapshot", "simulationSource"::"SimulationSource",
+              (id, "edgeId", "agentReasoningSnapshot",
+               "simulationSource"::"SimulationSource",
                "evidenceWeight", "observedOutcome"::"ObservedOutcome", timestamp)
-            VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            VALUES (%s, %s, %s, 'RXRX3_PHENOMICS', 1.0, 'SUPPORT', NOW())
             """,
-            (str(uuid.uuid4()), edge_id, reasoning,
-             "RXRX3_PHENOMICS", 1.0, "SUPPORT"),
+            (str(uuid.uuid4()), row[0], reasoning),
         )
 
 
-# ── Main ──────────────────────────────────────────────────────
+# ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Ingest rxrx3-core into the knowledge graph")
-    parser.add_argument("--limit",      type=int, default=200, help="Max compounds to import")
-    parser.add_argument("--dry-run",    action="store_true",   help="Print plan, no DB writes")
-    parser.add_argument("--genes-only", action="store_true",   help="Only ingest gene nodes")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--top-k",         type=int,   default=5,    help="Top-N genes per compound")
+    parser.add_argument("--min-sim",        type=float, default=0.5,  help="Minimum cosine similarity")
+    parser.add_argument("--dry-run",        action="store_true",      help="No DB writes")
+    parser.add_argument("--max-compounds",  type=int,   default=None, help="Cap number of compounds")
     args = parser.parse_args()
 
-    # ── Lazy imports (require pip install) ────────────────────
     try:
+        import numpy as np
+        import pandas as pd
         import psycopg2
-    except ImportError:
-        sys.exit("Run: pip install psycopg2-binary")
+        from huggingface_hub import hf_hub_download
+    except ImportError as exc:
+        sys.exit(f"Missing dependency ({exc.name}). Run: pip install numpy pandas huggingface_hub pyarrow psycopg2-binary")
 
-    try:
-        from datasets import load_dataset
-    except ImportError:
-        sys.exit("Run: pip install datasets")
+    # ── Download ──────────────────────────────────────────────────────────────
 
-    print("Loading rxrx3-core metadata (streaming — no images downloaded)…")
-
-    # ── Load dataset streaming ────────────────────────────────
-    # streaming=True avoids downloading the 18 GB image corpus.
-    # We only iterate the metadata fields we need.
-    ds = load_dataset(
+    print("Fetching metadata CSV from HuggingFace…")
+    meta_path = hf_hub_download(
         "recursionpharma/rxrx3-core",
-        split="train",
-        streaming=True,
-        trust_remote_code=True,
+        filename="metadata_rxrx3_core.csv",
+        repo_type="dataset",
     )
 
-    genes: dict[str, str]     = {}   # node_id → display name
-    compounds: dict[str, str] = {}   # node_id → display name
-    # DTI edges: (compound_id, gene_id) → {'ec50': float, 'interaction': str}
-    dti_edges: dict[tuple[str, str], dict] = {}
+    print("Fetching OpenPhenom embeddings (510 MB, cached after first run)…")
+    emb_path = hf_hub_download(
+        "recursionpharma/rxrx3-core",
+        filename="OpenPhenom_rxrx3_core_embeddings.parquet",
+        repo_type="dataset",
+    )
 
-    seen = 0
-    print("Scanning metadata rows…", end="", flush=True)
-    for row in ds:
-        seen += 1
-        if seen % 50_000 == 0:
-            print(f" {seen//1000}k", end="", flush=True)
+    # ── Load & split ──────────────────────────────────────────────────────────
 
-        treatment = (row.get("treatment") or row.get("gene") or "").strip()
-        conc      = row.get("treatment_conc") or row.get("concentration")
-        perttype  = row.get("perturbation_type") or ""
+    print("Loading metadata…")
+    meta = pd.read_csv(meta_path, low_memory=False)
 
-        if not treatment:
-            continue
+    # Strip control wells
+    meta = meta[~meta["treatment"].str.contains("control|EMPTY", case=False, na=False)]
 
-        # Classify as gene knockout vs compound based on concentration presence
-        is_compound = conc is not None and str(conc).replace(".", "").isdigit()
-        is_gene     = not is_compound or "crispr" in perttype.lower() or "sirna" in perttype.lower()
+    compounds_meta = meta[meta["perturbation_type"] == "COMPOUND"].copy()
+    genes_meta     = meta[meta["perturbation_type"] == "CRISPR"].copy()
 
-        if is_gene and not is_compound:
-            nid = gene_node_id(treatment)
-            genes.setdefault(nid, treatment)
-        elif is_compound:
-            nid = compound_node_id(treatment)
-            compounds.setdefault(nid, treatment)
+    print(f"  {len(compounds_meta):,} compound wells · {len(genes_meta):,} CRISPR wells")
+    print(f"  {compounds_meta['treatment'].nunique()} unique compounds · {genes_meta['gene'].nunique()} unique genes")
 
-            # If there's a gene target column, record a DTI edge
-            target_gene = (row.get("target") or row.get("gene_target") or "").strip()
-            if target_gene:
-                gnid = gene_node_id(target_gene)
-                genes.setdefault(gnid, target_gene)
-                ec50 = float(conc) if conc else 10.0
-                key  = (nid, gnid)
-                if key not in dti_edges or ec50 < dti_edges[key]["ec50"]:
-                    dti_edges[key] = {"ec50": ec50, "interaction": "INHIBITS"}
+    print("Loading embeddings…")
+    emb = pd.read_parquet(emb_path)
+    feat_cols = [c for c in emb.columns if c.startswith("feature_")]
 
-    print(f"\nFound {len(genes)} gene targets, {len(compounds)} compounds, {len(dti_edges)} DTI annotations")
+    # ── Average embeddings per compound ──────────────────────────────────────
 
-    # ── Limit compounds ───────────────────────────────────────
-    compound_items = list(compounds.items())[: args.limit]
-    allowed_compound_ids = {cid for cid, _ in compound_items}
+    print("Computing mean embeddings per compound…")
+    comp_emb = (
+        compounds_meta[["well_id", "treatment", "SMILES"]]
+        .merge(emb[["well_id"] + feat_cols], on="well_id", how="inner")
+    )
+    comp_mean = (
+        comp_emb.groupby("treatment")[feat_cols].mean()
+    )
+    # Keep one SMILES per compound (first non-null)
+    comp_smiles = (
+        comp_emb.groupby("treatment")["SMILES"]
+        .first()
+        .fillna("")
+    )
 
-    # ── Connect to DB ─────────────────────────────────────────
-    database_url = load_env()
-    if not args.dry_run:
-        conn = psycopg2.connect(database_url)
-        cur  = conn.cursor()
-    else:
-        conn = cur = None  # type: ignore
+    if args.max_compounds:
+        comp_mean = comp_mean.iloc[: args.max_compounds]
+
+    # ── Average embeddings per gene ───────────────────────────────────────────
+
+    print("Computing mean embeddings per gene…")
+    gene_emb = (
+        genes_meta[["well_id", "gene"]]
+        .merge(emb[["well_id"] + feat_cols], on="well_id", how="inner")
+    )
+    gene_mean = gene_emb.groupby("gene")[feat_cols].mean()
+
+    # ── Cosine similarity ─────────────────────────────────────────────────────
+
+    print(f"Computing cosine similarity ({len(comp_mean)} compounds × {len(gene_mean)} genes)…")
+    C = comp_mean.values.astype(np.float32)
+    G = gene_mean.values.astype(np.float32)
+    sim_matrix = cosine_sim_matrix(C, G)   # (n_compounds, n_genes)
+
+    comp_names = comp_mean.index.tolist()
+    gene_names = gene_mean.index.tolist()
+
+    # ── Build edge list ───────────────────────────────────────────────────────
+
+    print(f"Selecting top-{args.top_k} gene targets per compound (min_sim={args.min_sim})…")
+    edges: list[tuple[str, str, float, int]] = []
+
+    for ci, comp in enumerate(comp_names):
+        sims = sim_matrix[ci]
+        top_idx = np.argsort(sims)[::-1][: args.top_k]
+        for gi in top_idx:
+            s = float(sims[gi])
+            if s < args.min_sim:
+                break
+            edges.append((comp, gene_names[gi], s, ci))
+
+    print(f"  {len(edges):,} edges above threshold")
+
+    # ── DB writes ─────────────────────────────────────────────────────────────
+
+    if args.dry_run:
+        print("\n[DRY RUN] Sample of what would be written:")
+        for comp_name, gene_name, sim, _ in edges[:20]:
+            cid = sanitize_id(comp_name)
+            gid = sanitize_id(gene_name)
+            print(f"  {cid} --[TARGETS conf={sim:.3f}]--> {gid}")
+        print(f"\n  … {len(comp_mean)} compound nodes, {len(gene_mean)} gene nodes, {len(edges)} edges total")
+        return
+
+    db_url  = load_env()
+    conn    = psycopg2.connect(db_url)
+    cur     = conn.cursor()
 
     try:
-        # ── Gene nodes ────────────────────────────────────────
-        print(f"\nUpserting {len(genes)} gene nodes…")
-        for nid, name in genes.items():
-            upsert_node(cur, nid, name, "BIOMOLECULE",
-                        None, f"rxrx3:{nid}", None, args.dry_run)
+        # Gene nodes
+        print(f"\nUpserting {len(gene_mean)} gene nodes…")
+        for gene in gene_names:
+            gid = sanitize_id(gene)
+            upsert_node(cur, gid, gene, "BIOMOLECULE", None, f"rxrx3:{gene}")
 
-        if not args.genes_only:
-            # ── Compound nodes ────────────────────────────────
-            print(f"Upserting {len(compound_items)} compound nodes (limit={args.limit})…")
-            for nid, name in compound_items:
-                upsert_node(cur, nid, name, "CHEMICAL_CANDIDATE",
-                            None, f"rxrx3:{nid}", None, args.dry_run)
+        # Compound nodes (with SMILES)
+        print(f"Upserting {len(comp_mean)} compound nodes…")
+        for comp in comp_names:
+            cid    = sanitize_id(comp)
+            smiles = comp_smiles.get(comp) or None
+            if smiles == "":
+                smiles = None
+            upsert_node(cur, cid, comp, "CHEMICAL_CANDIDATE", smiles, f"rxrx3:{comp}")
 
-            # ── DTI edges ─────────────────────────────────────
-            edge_count = 0
-            print(f"Upserting DTI edges…")
-            for (cid, gid), info in dti_edges.items():
-                if cid not in allowed_compound_ids:
-                    continue
-                if gid not in genes:
-                    continue
-                ec50       = info["ec50"]
-                conf       = ec50_to_confidence(ec50)
-                alpha, beta = confidence_to_priors(conf)
-                reasoning  = (
-                    f"rxrx3-core DTI annotation: {cid} → {gid} "
-                    f"(EC50={ec50:.2f} µM, confidence={conf:.3f})"
-                )
-                upsert_edge_with_provenance(
-                    cur, cid, gid, info["interaction"],
-                    conf, round(alpha), alpha, beta,
-                    reasoning, args.dry_run,
-                )
-                edge_count += 1
+        # Edges
+        print(f"Upserting {len(edges)} phenotypic-similarity edges…")
+        for i, (comp_name, gene_name, sim, _) in enumerate(edges):
+            if i % 500 == 0:
+                print(f"  {i}/{len(edges)}", end="\r")
+            cid        = sanitize_id(comp_name)
+            gid        = sanitize_id(gene_name)
+            confidence = sim_to_confidence(sim)
+            reasoning  = (
+                f"rxrx3-core OpenPhenom phenotypic similarity: "
+                f"{comp_name} → {gene_name} (cosine={sim:.4f}). "
+                f"Compound's cellular phenotype resembles gene knockout phenotype, "
+                f"suggesting functional interaction through this pathway."
+            )
+            upsert_edge(cur, cid, gid, confidence, 1, reasoning)
 
-            print(f"  {edge_count} edges written")
-
-        if not args.dry_run and conn:
-            conn.commit()
-            print("\nCommitted. Run `npm run dev` and refresh the graph view.")
+        conn.commit()
+        print(f"\nDone. {len(gene_mean)} genes, {len(comp_mean)} compounds, {len(edges)} edges committed.")
+        print("Refresh the graph at http://localhost:3000 to see the new data.")
 
     except Exception as e:
-        if conn:
-            conn.rollback()
+        conn.rollback()
         raise e
     finally:
-        if cur:  cur.close()
-        if conn: conn.close()
-
-    print("\nDone.")
+        cur.close()
+        conn.close()
 
 
 if __name__ == "__main__":
