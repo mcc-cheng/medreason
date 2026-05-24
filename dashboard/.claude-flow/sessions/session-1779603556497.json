@@ -1,0 +1,14 @@
+{
+  "id": "session-1779603556497",
+  "startedAt": "2026-05-24T06:19:16.497Z",
+  "cwd": "/Users/davidzhang/Desktop/Origin/Personal/medreason/dashboard",
+  "context": {},
+  "metrics": {
+    "edits": 0,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "endedAt": "2026-05-24T06:36:49.773Z",
+  "duration": 1053277
+}
