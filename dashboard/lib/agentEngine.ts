@@ -96,6 +96,33 @@ const TOOLS: Tool[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'analyze_compound_protein_interaction',
+      description: [
+        'Analyze the relationship between a specific compound and a target protein using the knowledge graph.',
+        'Returns: (1) the direct edge with Bayesian confidence scores (priorAlpha, priorBeta, confidenceScore, observationCount),',
+        '(2) all other compounds that also target the same protein ranked by confidence,',
+        '(3) all other proteins the compound targets ranked by confidence.',
+        'Use this as the primary tool when analyzing how a compound affects a specific protein.',
+      ].join(' '),
+      parameters: {
+        type: 'object',
+        properties: {
+          compound_id: {
+            type: 'string',
+            description: 'ID of the compound (e.g. "IMATINIB", "GEFITINIB", "ASPIRIN")',
+          },
+          protein_id: {
+            type: 'string',
+            description: 'ID of the target protein (e.g. "BCR-ABL", "EGFR", "COX-2")',
+          },
+        },
+        required: ['compound_id', 'protein_id'],
+      },
+    },
+  },
 ];
 
 // ─── Tool dispatcher ──────────────────────────────────────────
@@ -135,6 +162,13 @@ async function dispatchTool(
         formatted: MemoryManager.formatSubGraphForPrompt(sg),
       };
     }
+    case 'analyze_compound_protein_interaction': {
+      const result = await memory.analyzeCompoundProteinInteraction(
+        args.compound_id as string,
+        args.protein_id as string,
+      );
+      return result;
+    }
     default:
       throw new Error(`Unknown tool: ${name}`);
   }
@@ -160,14 +194,30 @@ export class AgentEngine {
     const graphContext = MemoryManager.formatSubGraphForPrompt(subGraph);
 
     const systemPrompt = [
-      'You are an expert computational biologist operating an in-silico drug discovery simulation platform.',
-      'You have access to a live knowledge graph of proteins, compounds, and interaction edges — each edge has a Bayesian confidence score updated by past simulations.',
-      'When asked to simulate or analyze a compound-protein interaction:',
-      '  1. Query the graph to understand what is already known.',
-      '  2. Run the relevant simulation or safety tools.',
-      '  3. Interpret the results: explain predicted efficacy, toxicity, and confidence scores.',
-      '  4. Summarize what the simulation learned and how it updates the knowledge graph.',
-      'Be concise, scientifically precise, and reason step by step.',
+      'You are an expert computational biologist. Deliver a concise, professional analysis directly to a drug discovery researcher.',
+      '',
+      'RESPONSE RULES (strictly enforced):',
+      '- Never mention tool calls, function names, errors, or internal steps. The user does not see your tools.',
+      '- If data is unavailable, state the scientific limitation in one sentence — do not explain why technically.',
+      '- Keep the total response under 250 words unless the analysis genuinely requires more.',
+      '- Only include findings that are directly relevant to the compound–protein pair being analyzed.',
+      '',
+      'FORMAT (use exactly this structure):',
+      '## Direct Interaction',
+      'One paragraph: the confidence score, observation count, and what it means scientifically.',
+      '',
+      '## Competing Compounds',
+      'Bullet list of other compounds targeting the same protein, ranked by confidence. Each bullet: compound name, confidence %, key pharmacological note.',
+      '',
+      '## Selectivity Profile',
+      'Bullet list of other proteins this compound targets. Flag polypharmacology risks if relevant.',
+      '',
+      '## Summary',
+      'Two sentences max: the key takeaway and any clinical/research implications.',
+      '',
+      'Use **bold** for compound names, protein names, and key numeric values.',
+      'Use markdown headers (##) and bullet points (-) as shown above.',
+      'Do not add any other sections. Do not use tables.',
     ].join('\n');
 
     const initialContent = `${graphContext}\n\nUser request:\n${userPrompt}`;

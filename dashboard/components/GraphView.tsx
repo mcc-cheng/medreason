@@ -19,6 +19,7 @@ interface GraphData {
 
 interface Props {
   highlightNodes?: Set<string>;
+  onClearHighlight?: () => void;
 }
 
 // Three-color palette: gold (compounds, positive action), ruby (pathways, inhibition),
@@ -66,7 +67,7 @@ const DIRECT_TYPES  = new Set(['INHIBITS', 'ACTIVATES', 'BINDS', 'ALLOSTERIC_MOD
 const SIM_TYPES     = new Set(['SIMILAR_TO']);
 const INFER_TYPES   = new Set(['TARGETS', 'ASSOCIATED_WITH']);
 
-export default function GraphView({ highlightNodes = new Set<string>() }: Props) {
+export default function GraphView({ highlightNodes = new Set<string>(), onClearHighlight }: Props) {
   const [data, setData]                 = useState<GraphData | null>(null);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState<string | null>(null);
@@ -145,11 +146,13 @@ export default function GraphView({ highlightNodes = new Set<string>() }: Props)
       if (e.key === 'Escape') {
         setSelectedNode(null);
         setSearchPickId(null);
+        onClearHighlight?.();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onClearHighlight]);
 
   const graphData = useMemo(() => {
     if (!data) return { nodes: [], links: [] };
@@ -636,6 +639,10 @@ export default function GraphView({ highlightNodes = new Set<string>() }: Props)
             linkCanvasObject={linkCanvasObject}
             linkCanvasObjectMode={() => 'after'}
             onNodeClick={(node) => setSelectedNode(prev => (prev as { id?: string } | null)?.id === (node as { id: string }).id ? null : node as Record<string, unknown>)}
+            onBackgroundClick={() => {
+              setSelectedNode(null);
+              onClearHighlight?.();
+            }}
             enableNodeDrag={false}
             onEngineStop={handleEngineStop}
             onZoom={handleZoom}
@@ -665,6 +672,31 @@ export default function GraphView({ highlightNodes = new Set<string>() }: Props)
           <div className="absolute w-64 z-20" style={{ bottom: '64px', left: '16px' }}>
             <NodeDetail node={selectedNode} onClose={() => setSelectedNode(null)} />
           </div>
+        )}
+
+        {/* Clear-selection pill — appears whenever agent highlights are active */}
+        {highlightNodes.size > 0 && (
+          <button
+            onClick={() => onClearHighlight?.()}
+            className="absolute z-20 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full cursor-pointer transition-all hover:opacity-80"
+            style={{
+              top: '72px',
+              left: '352px',
+              background: 'rgba(139,92,246,0.18)',
+              border: '1px solid rgba(139,92,246,0.35)',
+              color: '#c4b5fd',
+            }}
+            aria-label="Clear graph selection"
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: '#8b5cf6', boxShadow: '0 0 6px rgba(139,92,246,0.8)' }}
+            />
+            {[...highlightNodes].join(' · ')}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true" className="ml-0.5 opacity-60">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
         )}
 
         {/* Propagation toast */}

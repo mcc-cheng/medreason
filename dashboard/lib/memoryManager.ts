@@ -242,6 +242,69 @@ export class MemoryManager {
     return row.id;
   }
 
+  // ── Compound–protein interaction analysis ────────────────────
+
+  /**
+   * Analyze the relationship between a specific compound and a target protein:
+   *   1. Direct edge (if any) with full Bayesian confidence stats
+   *   2. All other compounds that also target the same protein, ranked by confidence
+   *   3. All other proteins that the compound targets, ranked by confidence
+   */
+  async analyzeCompoundProteinInteraction(
+    compoundId: string,
+    proteinId: string,
+  ): Promise<{
+    compound: CustomNode | null;
+    protein: CustomNode | null;
+    directEdge: InteractionEdge | null;
+    competingCompounds: Array<{ node: CustomNode | null; edge: InteractionEdge }>;
+    otherTargets: Array<{ node: CustomNode | null; edge: InteractionEdge }>;
+  }> {
+    const [compoundRow, proteinRow] = await Promise.all([
+      prisma.node.findUnique({ where: { id: compoundId } }),
+      prisma.node.findUnique({ where: { id: proteinId } }),
+    ]);
+    const compound = compoundRow ? mapNode(compoundRow) : null;
+    const protein  = proteinRow  ? mapNode(proteinRow)  : null;
+
+    // Direct edge between this compound and protein
+    const directRow = await prisma.edge.findFirst({
+      where: { sourceId: compoundId, targetId: proteinId },
+      include: { provenanceLog: true },
+    });
+    const directEdge = directRow ? mapEdge(directRow) : null;
+
+    // Other compounds targeting the same protein, ranked by confidence
+    const competingRows = await prisma.edge.findMany({
+      where: { targetId: proteinId, sourceId: { not: compoundId } },
+      include: { provenanceLog: true },
+      orderBy: { confidenceScore: 'desc' },
+    });
+    const competingSourceIds = [...new Set(competingRows.map((e) => e.sourceId))];
+    const competingNodes = await prisma.node.findMany({ where: { id: { in: competingSourceIds } } });
+    const competingNodeMap = new Map(competingNodes.map((r) => [r.id, mapNode(r)]));
+    const competingCompounds = competingRows.map((e) => ({
+      node: competingNodeMap.get(e.sourceId) ?? null,
+      edge: mapEdge(e),
+    }));
+
+    // Other proteins this compound targets, ranked by confidence
+    const otherTargetRows = await prisma.edge.findMany({
+      where: { sourceId: compoundId, targetId: { not: proteinId } },
+      include: { provenanceLog: true },
+      orderBy: { confidenceScore: 'desc' },
+    });
+    const otherTargetIds = [...new Set(otherTargetRows.map((e) => e.targetId))];
+    const otherTargetNodes = await prisma.node.findMany({ where: { id: { in: otherTargetIds } } });
+    const otherTargetNodeMap = new Map(otherTargetNodes.map((r) => [r.id, mapNode(r)]));
+    const otherTargets = otherTargetRows.map((e) => ({
+      node: otherTargetNodeMap.get(e.targetId) ?? null,
+      edge: mapEdge(e),
+    }));
+
+    return { compound, protein, directEdge, competingCompounds, otherTargets };
+  }
+
   // ── Formatting helpers for LLM context injection ─────────────
 
   /**

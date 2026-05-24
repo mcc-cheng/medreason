@@ -7,7 +7,7 @@ import GraphView from '@/components/GraphView';
 import type { AgentRunOutput } from '@/lib/types';
 
 export default function Home() {
-  const [result, setResult]               = useState<AgentRunOutput | null>(null);
+  const [result, setResult]                 = useState<AgentRunOutput | null>(null);
   const [highlightNodes, setHighlightNodes] = useState<Set<string>>(new Set());
 
   function handleResult(r: AgentRunOutput, focalNodeIds: string[]) {
@@ -15,12 +15,21 @@ export default function Home() {
     setHighlightNodes(new Set(focalNodeIds));
   }
 
+  function handleClearHighlight() {
+    setHighlightNodes(new Set());
+  }
+
+  function handleCloseResult() {
+    setResult(null);
+    setHighlightNodes(new Set());
+  }
+
   return (
     <main className="relative w-screen overflow-hidden" style={{ background: '#09090B', height: '100dvh' }}>
       {/* Full-screen graph — background layer */}
-      <GraphView highlightNodes={highlightNodes} />
+      <GraphView highlightNodes={highlightNodes} onClearHighlight={handleClearHighlight} />
 
-      {/* Floating header — full-width translucent glass bar, matches all other floating panels */}
+      {/* Floating header */}
       <header className="absolute top-0 left-0 right-0 z-30 px-5 py-3 glass-refract">
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -47,13 +56,22 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Floating right panel — Run Simulation + Result float over the graph */}
+      {/* Right column — input panel pinned at top, result panel below it */}
       <div
-        className="absolute right-4 z-30 w-[360px] flex flex-col gap-4 overflow-y-auto"
-        style={{ top: '72px', bottom: '16px' }}
+        className="absolute right-4 z-30 w-[360px] flex flex-col gap-4"
+        style={{ top: '72px', bottom: '16px', pointerEvents: 'none' }}
       >
-        <SimulationPanel onResult={handleResult} />
-        {result && <ResultPanel result={result} />}
+        {/* Input panel — always visible, never scrolled away */}
+        <div style={{ pointerEvents: 'auto', flexShrink: 0 }}>
+          <SimulationPanel onResult={handleResult} />
+        </div>
+
+        {/* Result panel — scrollable area below input, closeable */}
+        {result && (
+          <div className="overflow-y-auto min-h-0 flex-1" style={{ pointerEvents: 'auto' }}>
+            <ResultPanel result={result} onClose={handleCloseResult} />
+          </div>
+        )}
       </div>
     </main>
   );
